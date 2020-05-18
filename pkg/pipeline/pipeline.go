@@ -49,16 +49,18 @@ func New(opts ...Option) (*Pipeline, error) {
 
 func NewPipelineByConfig(conf Config, opts ...Option) (*Pipeline, error) {
 	var components []component.Component
-	for cn, rawConfig := range conf.Components {
-		factory, err := component.GetFactory(cn)
-		if err != nil {
-			return nil, err
+	for _, name2config := range conf.Components {
+		for componentName, rawConfig := range name2config {
+			factory, err := component.GetFactory(componentName)
+			if err != nil {
+				return nil, err
+			}
+			c, err := factory(rawConfig)
+			if err != nil {
+				return nil, err
+			}
+			components = append(components, c)
 		}
-		c, err := factory(rawConfig)
-		if err != nil {
-			return nil, err
-		}
-		components = append(components, c)
 	}
 
 	stream, err := NewStream(*conf.Stream)

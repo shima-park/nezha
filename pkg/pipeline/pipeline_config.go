@@ -2,8 +2,8 @@ package pipeline
 
 type Config struct {
 	Name       string
-	Components map[string]string // key: name, value: rawConfig
-	Stream     *StreamConfig     // key: name, value: FlowConfig
+	Components []map[string]string // key: name, value: rawConfig
+	Stream     *StreamConfig       // key: name, value: FlowConfig
 }
 
 func (c *Config) AddStream(conf StreamConfig) *StreamConfig {
