@@ -2,9 +2,10 @@ package pipeline
 
 import (
 	"context"
+	"reflect"
+
 	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/processor"
-	"reflect"
 
 	"github.com/shima-park/inject"
 )
@@ -18,7 +19,7 @@ type execContext struct {
 func NewExecContext(ctx context.Context, s *Stream, parent inject.Injector) *execContext {
 	inj := inject.New()
 	inj.SetParent(parent)
-	inj.MapTo(ctx, "Ctx", (*context.Context)(nil))
+	inj.MapTo(ctx, "Context", (*context.Context)(nil))
 
 	return &execContext{
 		ctx:      ctx,
