@@ -2,6 +2,7 @@ package processor
 
 import (
 	"fmt"
+
 	"github.com/shima-park/nezha/pkg/common/log"
 )
 
@@ -25,6 +26,12 @@ func Register(name string, factory Factory) error {
 	log.Info("Successfully registered processor: %s", name)
 
 	return nil
+}
+
+func RegisterProcessor(name string, processor Processor) error {
+	return Register(name, func(string) (Processor, error) {
+		return processor, nil
+	})
 }
 
 func GetFactory(name string) (Factory, error) {
