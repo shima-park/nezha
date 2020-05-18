@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/shima-park/nezha/pkg/common/config"
+	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/go-redis/redis"
@@ -20,11 +21,11 @@ func init() {
 }
 
 type ClientConfig struct {
-	Name     string
-	Addr     string
-	Password string
-	DB       int
-	PoolSize int
+	Name     string `yaml:"name"`
+	Addr     string `yaml:"addr"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+	PoolSize int    `yaml:"pool_size"`
 }
 
 type Client struct {
@@ -38,6 +39,8 @@ func NewClient(rawConfig string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Info("Pika config: %+v", conf)
 
 	c := redis.NewClient(&redis.Options{
 		Addr:     conf.Addr,

@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/shima-park/nezha/pkg/common/config"
+	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/Shopify/sarama"
@@ -21,8 +22,8 @@ func init() {
 }
 
 type ProducerConfig struct {
-	Name  string
-	Addrs []string
+	Name  string   `yaml:"name"`
+	Addrs []string `yaml"addrs"`
 }
 
 type Producer struct {
@@ -37,6 +38,8 @@ func NewProducer(rawConfig string) (*Producer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Info("Kafka producer config: %+v", conf)
 
 	producer, err := sarama.NewSyncProducer(conf.Addrs, nil)
 	if err != nil {

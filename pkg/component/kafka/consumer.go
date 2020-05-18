@@ -23,12 +23,12 @@ func init() {
 }
 
 type ConsumerConfig struct {
-	Name              string
-	Addrs             []string
-	ConsumerGroup     string
-	Topics            []string
-	OffsetsInitial    int64
-	OffsetsAutoCommit bool
+	Name              string   `yaml:"name"`
+	Addrs             []string `yaml:"addrs"`
+	ConsumerGroup     string   `yaml:"consumer_group"`
+	Topics            []string `yaml:"topics"`
+	OffsetsInitial    int64    `yaml:"offsets_initial"`
+	OffsetsAutoCommit bool     `yaml:"offsets_auto_commit"`
 }
 
 type Consumer struct {
@@ -44,6 +44,8 @@ func NewConsumer(rawConfig string) (*Consumer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Info("Kafka consumer config: %+v", conf)
 
 	kafkaConf := cluster.NewConfig()
 	kafkaConf.Consumer.Return.Errors = true

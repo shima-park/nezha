@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/shima-park/nezha/pkg/common/config"
+	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/olivere/elastic"
@@ -20,8 +21,8 @@ func init() {
 }
 
 type ClientConfig struct {
-	Name string
-	Addr string
+	Name string `yaml:"name"`
+	Addr string `yaml:"addr"`
 }
 
 type Client struct {
@@ -35,6 +36,8 @@ func NewClient(rawConfig string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Info("ES config: %+v", conf)
 
 	var options []elastic.ClientOptionFunc
 	if conf.Addr != "" {
