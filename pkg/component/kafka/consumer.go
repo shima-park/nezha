@@ -50,7 +50,7 @@ func NewConsumer(rawConfig string) (*Consumer, error) {
 	kafkaConf := cluster.NewConfig()
 	kafkaConf.Consumer.Return.Errors = true
 	kafkaConf.Group.Return.Notifications = true
-	//kafkaConfig.Consumer.Offsets.Initial = -1
+	kafkaConf.Consumer.Offsets.Initial = conf.OffsetsInitial
 
 	// sarama >= 1.26 https://github.com/Shopify/sarama/issues/1638
 	// fix it: panic: non-positive interval for NewTicker
