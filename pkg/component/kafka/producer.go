@@ -1,9 +1,10 @@
 package kafka
 
 import (
-	"nezha/pkg/component"
-	"nezha/pkg/common/config"
 	"reflect"
+
+	"github.com/shima-park/nezha/pkg/common/config"
+	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/Shopify/sarama"
 	"github.com/shima-park/inject"
@@ -27,6 +28,7 @@ type ProducerConfig struct {
 type Producer struct {
 	config   ProducerConfig
 	producer sarama.SyncProducer
+	instance component.Instance
 }
 
 func NewProducer(rawConfig string) (*Producer, error) {
@@ -44,11 +46,18 @@ func NewProducer(rawConfig string) (*Producer, error) {
 	return &Producer{
 		config:   conf,
 		producer: producer,
+		instance: component.NewInstance(
+			conf.Name,
+			inject.InterfaceOf((*sarama.SyncProducer)(nil)),
+			reflect.ValueOf(producer),
+			producer,
+		),
 	}, nil
 }
 
 func (c *Producer) SampleConfig() string {
 	conf := ProducerConfig{
+		Name:  "MyKafkaProducer",
 		Addrs: []string{"localhost:9092"},
 	}
 
@@ -62,12 +71,7 @@ func (c *Producer) Description() string {
 }
 
 func (c *Producer) Instance() component.Instance {
-	return component.Instance{
-		Name:      c.config.Name,
-		Type:      inject.InterfaceOf((*sarama.SyncProducer)(nil)),
-		Value:     reflect.ValueOf(c.producer),
-		Interface: c.producer,
-	}
+	return c.instance
 }
 
 func (c *Producer) Start() error {

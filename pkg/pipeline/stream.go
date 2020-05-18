@@ -2,8 +2,8 @@ package pipeline
 
 import (
 	"errors"
-	"nezha/pkg/common/log"
-	"nezha/pkg/processor"
+	"github.com/shima-park/nezha/pkg/common/log"
+	"github.com/shima-park/nezha/pkg/processor"
 	"strings"
 	"sync"
 

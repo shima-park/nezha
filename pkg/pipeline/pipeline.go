@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"nezha/pkg/common/log"
-	"nezha/pkg/component"
+
+	"github.com/shima-park/nezha/pkg/common/log"
+	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/google/uuid"
 	"github.com/shima-park/inject"
@@ -40,7 +41,7 @@ func New(opts ...Option) (*Pipeline, error) {
 
 	for _, component := range p.components {
 		instance := component.Instance()
-		p.injector.Set(instance.Type, instance.Name, instance.Value)
+		p.injector.Set(instance.Type(), instance.Name(), instance.Value())
 	}
 
 	return p, nil
@@ -123,7 +124,7 @@ func (c *Pipeline) ListComponent() []string {
 	var list []string
 	for _, component := range c.components {
 		i := component.Instance()
-		list = append(list, fmt.Sprintf("Name: %s, Type: %s", i.Name, i.Type))
+		list = append(list, fmt.Sprintf("Name: %s, Type: %s", i.Name(), i.Type()))
 	}
 	return list
 }

@@ -2,7 +2,7 @@ package processor
 
 import (
 	"errors"
-	"nezha/pkg/common/plugin"
+	"github.com/shima-park/nezha/pkg/common/plugin"
 )
 
 type processorPlugin struct {

@@ -2,7 +2,7 @@ package component
 
 import (
 	"fmt"
-	"nezha/pkg/common/log"
+	"github.com/shima-park/nezha/pkg/common/log"
 )
 
 type Factory = func(config string) (Component, error)

@@ -2,8 +2,8 @@ package pipeline
 
 import (
 	"context"
-	"nezha/pkg/common/log"
-	"nezha/pkg/processor"
+	"github.com/shima-park/nezha/pkg/common/log"
+	"github.com/shima-park/nezha/pkg/processor"
 	"reflect"
 
 	"github.com/shima-park/inject"

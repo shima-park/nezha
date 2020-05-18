@@ -1,11 +1,12 @@
 package kafka
 
 import (
-	"nezha/pkg/common/config"
-	"nezha/pkg/common/log"
-	"nezha/pkg/component"
 	"reflect"
 	"time"
+
+	"github.com/shima-park/nezha/pkg/common/config"
+	"github.com/shima-park/nezha/pkg/common/log"
+	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/Shopify/sarama"
 	cluster "github.com/bsm/sarama-cluster"
@@ -34,6 +35,7 @@ type Consumer struct {
 	config   ConsumerConfig
 	consumer *cluster.Consumer
 	done     chan struct{}
+	instance component.Instance
 }
 
 func NewConsumer(rawConfig string) (*Consumer, error) {
@@ -63,15 +65,22 @@ func NewConsumer(rawConfig string) (*Consumer, error) {
 		config:   conf,
 		consumer: consumer,
 		done:     make(chan struct{}),
+		instance: component.NewInstance(
+			conf.Name,
+			reflect.TypeOf(consumer),
+			reflect.ValueOf(consumer),
+			consumer,
+		),
 	}, nil
 }
 
 // SampleConfig returns the default configuration of the Input
 func (c *Consumer) SampleConfig() string {
 	conf := ConsumerConfig{
+		Name:              "MyKafkaConsumer",
 		Addrs:             []string{"localhost:9092"},
-		ConsumerGroup:     "your_consumer_group",
-		Topics:            []string{"your_topics"},
+		ConsumerGroup:     "my_consumer_group",
+		Topics:            []string{"my_topics"},
 		OffsetsInitial:    sarama.OffsetNewest,
 		OffsetsAutoCommit: true,
 	}
@@ -87,12 +96,7 @@ func (c *Consumer) Description() string {
 }
 
 func (c *Consumer) Instance() component.Instance {
-	return component.Instance{
-		Name:      c.config.Name,
-		Type:      reflect.TypeOf(c.consumer),
-		Value:     reflect.ValueOf(c.consumer),
-		Interface: c.consumer,
-	}
+	return c.instance
 }
 
 func (c *Consumer) Start() error {

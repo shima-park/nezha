@@ -2,7 +2,7 @@ package pipeline
 
 import (
 	"context"
-	"nezha/pkg/component"
+	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/shima-park/inject"
 )

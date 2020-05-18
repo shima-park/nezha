@@ -2,11 +2,12 @@ package io
 
 import (
 	"io"
-	"nezha/pkg/component"
-	"nezha/pkg/common/config"
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/shima-park/nezha/pkg/common/config"
+	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/pkg/errors"
 	"github.com/shima-park/inject"
@@ -28,8 +29,8 @@ type ReaderConfig struct {
 }
 
 type Reader struct {
-	rc     io.ReadCloser
-	config ReaderConfig
+	rc       io.ReadCloser
+	instance component.Instance
 }
 
 func NewReader(rawConfig string) (*Reader, error) {
@@ -56,8 +57,13 @@ func NewReader(rawConfig string) (*Reader, error) {
 	}
 
 	return &Reader{
-		rc:     f,
-		config: conf,
+		rc: f,
+		instance: component.NewInstance(
+			conf.Name,
+			inject.InterfaceOf((*io.Reader)(nil)),
+			reflect.ValueOf(f),
+			f,
+		),
 	}, nil
 }
 
@@ -76,12 +82,7 @@ func (r *Reader) Description() string {
 }
 
 func (r *Reader) Instance() component.Instance {
-	return component.Instance{
-		Name:      r.config.Name,
-		Type:      inject.InterfaceOf((*io.Reader)(nil)),
-		Value:     reflect.ValueOf(r.rc),
-		Interface: r.rc,
-	}
+	return r.instance
 }
 
 func (r *Reader) Start() error {

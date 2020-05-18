@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"io"
 
-	"nezha/pkg/common/plugin"
-	"nezha/pkg/processor"
+	"github.com/shima-park/nezha/pkg/common/plugin"
+	"github.com/shima-park/nezha/pkg/processor"
 )
 
 var Bundle = plugin.Bundle(

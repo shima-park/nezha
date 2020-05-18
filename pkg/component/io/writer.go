@@ -3,11 +3,12 @@ package io
 import (
 	"io"
 	"io/ioutil"
-	"nezha/pkg/component"
-	"nezha/pkg/common/config"
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/shima-park/nezha/pkg/common/config"
+	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/pkg/errors"
 	"github.com/shima-park/inject"
@@ -29,8 +30,8 @@ type WriterConfig struct {
 }
 
 type Writer struct {
-	wc     io.WriteCloser
-	config WriterConfig
+	wc       io.WriteCloser
+	instance component.Instance
 }
 
 type nopCloser struct {
@@ -67,8 +68,13 @@ func NewWriter(rawConfig string) (*Writer, error) {
 	}
 
 	return &Writer{
-		wc:     f,
-		config: conf,
+		wc: f,
+		instance: component.NewInstance(
+			conf.Name,
+			inject.InterfaceOf((*io.Writer)(nil)),
+			reflect.ValueOf(f),
+			f,
+		),
 	}, nil
 }
 
@@ -87,12 +93,7 @@ func (w *Writer) Description() string {
 }
 
 func (w *Writer) Instance() component.Instance {
-	return component.Instance{
-		Name:      w.config.Name,
-		Type:      inject.InterfaceOf((*io.Writer)(nil)),
-		Value:     reflect.ValueOf(w.wc),
-		Interface: w.wc,
-	}
+	return w.instance
 }
 
 func (w *Writer) Start() error {

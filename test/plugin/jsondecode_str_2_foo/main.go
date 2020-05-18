@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"io"
 
-	"nezha/pkg/common/plugin"
-	"nezha/pkg/processor"
-	"nezha/test/proto"
+	"github.com/shima-park/nezha/pkg/common/plugin"
+	"github.com/shima-park/nezha/pkg/processor"
+	"github.com/shima-park/nezha/test/proto"
 )
 
 var Bundle = plugin.Bundle(
