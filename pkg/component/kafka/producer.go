@@ -23,7 +23,7 @@ func init() {
 
 type ProducerConfig struct {
 	Name  string   `yaml:"name"`
-	Addrs []string `yaml"addrs"`
+	Addrs []string `yaml:"addrs"`
 }
 
 type Producer struct {
