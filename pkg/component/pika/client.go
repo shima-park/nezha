@@ -1,9 +1,10 @@
 package pika
 
 import (
+	"reflect"
+
 	"github.com/shima-park/nezha/pkg/common/config"
 	"github.com/shima-park/nezha/pkg/component"
-	"reflect"
 
 	"github.com/go-redis/redis"
 )
@@ -12,7 +13,7 @@ var _ component.Component = &Client{}
 
 func init() {
 	if err := component.Register("pika_client", func(config string) (component.Component, error) {
-		return NewWriter(config)
+		return NewClient(config)
 	}); err != nil {
 		panic(err)
 	}
@@ -38,18 +39,20 @@ func NewClient(rawConfig string) (*Client, error) {
 		return nil, err
 	}
 
+	c := redis.NewClient(&redis.Options{
+		Addr:     conf.Addr,
+		Password: conf.Password,
+		DB:       conf.DB,
+		PoolSize: conf.PoolSize,
+	})
+
 	return &Client{
-		c: redis.NewClient(&redis.Options{
-			Addr:     conf.Addr,
-			Password: conf.Password,
-			DB:       conf.DB,
-			PoolSize: conf.PoolSize,
-		}),
+		c: c,
 		instance: component.NewInstance(
 			conf.Name,
-			reflect.TypeOf(c.c),
-			reflect.ValueOf(c.c),
-			c.c,
+			reflect.TypeOf(c),
+			reflect.ValueOf(c),
+			c,
 		),
 	}, nil
 }

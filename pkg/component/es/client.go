@@ -1,9 +1,10 @@
 package es
 
 import (
+	"reflect"
+
 	"github.com/shima-park/nezha/pkg/common/config"
 	"github.com/shima-park/nezha/pkg/component"
-	"reflect"
 
 	"github.com/olivere/elastic"
 )
@@ -12,7 +13,7 @@ var _ component.Component = &Client{}
 
 func init() {
 	if err := component.Register("es_client", func(config string) (component.Component, error) {
-		return NewWriter(config)
+		return NewClient(config)
 	}); err != nil {
 		panic(err)
 	}
@@ -35,18 +36,23 @@ func NewClient(rawConfig string) (*Client, error) {
 		return nil, err
 	}
 
-	var options elastic.ClientOptionFunc
+	var options []elastic.ClientOptionFunc
 	if conf.Addr != "" {
 		options = append(options, elastic.SetURL(conf.Addr))
 	}
 
+	c, err := elastic.NewClient(options...)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Client{
-		c: elastic.NewClient(options...),
+		c: c,
 		instance: component.NewInstance(
 			conf.Name,
-			reflect.TypeOf(c.c),
-			reflect.ValueOf(c.c),
-			c.c,
+			reflect.TypeOf(c),
+			reflect.ValueOf(c),
+			c,
 		),
 	}, nil
 }
@@ -66,7 +72,7 @@ func (c *Client) Description() string {
 	return "es client factory"
 }
 
-func (c *Client) Instance() Instance {
+func (c *Client) Instance() component.Instance {
 	return c.instance
 }
 
