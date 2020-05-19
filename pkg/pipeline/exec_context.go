@@ -35,6 +35,20 @@ func (c *execContext) Run() error {
 }
 
 func run(s *Stream, injector inject.Injector) error {
+	if err := invoke(s, injector); err != nil {
+		return err
+	}
+
+	for i := 0; i < len(s.childs); i++ {
+		if err := run(s.childs[i], injector); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func invoke(s *Stream, injector inject.Injector) error {
 	if s == nil || s.processor == nil {
 		return nil
 	}
@@ -50,13 +64,6 @@ func run(s *Stream, injector inject.Injector) error {
 
 	if err = setInjector(injector, vals...); err != nil {
 		return errors.Wrapf(err, "Stream(%s)", s.Name())
-	}
-
-	for i := 0; i < len(s.childs); i++ {
-		sf := s.childs[i]
-		if err = run(sf, injector); err != nil {
-			return err
-		}
 	}
 	return nil
 }
