@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
+	"strings"
+
 	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/common/plugin"
 	_ "github.com/shima-park/nezha/pkg/component/include"
 	"github.com/shima-park/nezha/pkg/pipeline"
-	"os"
-	"os/signal"
-	"strings"
 )
 
 var plugins = &pluginList{}
@@ -39,9 +40,9 @@ func main() {
 
 	pipeConf := pipeline.Config{
 		Name: "test_pipeline",
-		Components: map[string]string{
-			"io_reader": `{"Name":"Stdin","Path":"stdin"}`,
-			"io_writer": `{"Name":"Stdout","Path":"stdout"}`,
+		Components: []map[string]string{
+			{"io_reader": `{"Name":"Stdin","Path":"stdin"}`},
+			{"io_writer": `{"Name":"Stdout","Path":"stdout"}`},
 		},
 	}
 

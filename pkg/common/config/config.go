@@ -1,10 +1,10 @@
 package config
 
-import "encoding/json"
+import "gopkg.in/yaml.v2"
 
 var (
-	DefaultUnmarshal UnmarshalFunc = json.Unmarshal
-	DefaultMarshal   MarshalFunc   = json.Marshal
+	DefaultUnmarshal UnmarshalFunc = yaml.Unmarshal
+	DefaultMarshal   MarshalFunc   = yaml.Marshal
 )
 
 type UnmarshalFunc func(in []byte, v interface{}) error

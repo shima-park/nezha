@@ -4,10 +4,10 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/pkg/errors"
+	"github.com/shima-park/inject"
 	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/processor"
-
-	"github.com/shima-park/inject"
 )
 
 type execContext struct {
@@ -45,7 +45,7 @@ func run(ctx context.Context, s *Stream, injector inject.Injector) error {
 
 	vals, err := injector.Invoke(s.processor)
 	if err != nil {
-		return err
+		return errors.Wrap(err, s.name)
 	}
 
 	for _, val := range vals {

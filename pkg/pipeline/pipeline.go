@@ -88,6 +88,13 @@ func (c *Pipeline) Name() string {
 }
 
 func (c *Pipeline) Start() error {
+	// TODO start once
+	for _, c := range c.components {
+		if err := c.Start(); err != nil {
+			return err
+		}
+	}
+
 	for !c.isStopped() {
 		select {
 		case <-c.ctx.Done():
