@@ -2,8 +2,11 @@ package pipeline
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"sync"
+	"sync/atomic"
+
+	"github.com/pkg/errors"
 
 	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/component"
@@ -19,7 +22,11 @@ type Pipeline struct {
 	components []component.Component
 	injector   inject.Injector
 	stream     *Stream
-	done       chan struct{}
+
+	status    int32
+	ctrlWg    sync.WaitGroup
+	runningWg sync.WaitGroup
+	done      chan struct{}
 }
 
 func New(opts ...Option) (*Pipeline, error) {
@@ -27,21 +34,26 @@ func New(opts ...Option) (*Pipeline, error) {
 		ctx:      context.Background(),
 		id:       uuid.New().String(),
 		injector: inject.New(),
+		done:     make(chan struct{}),
 	}
 
 	apply(p, opts)
 
-	if p.name == "" {
-		p.name = p.id
-	}
+	p.injector = NewLoggerInjector("Pipeline: "+p.Name(), p.injector)
+	p.injector.MapTo(p.ctx, "Context", (*context.Context)(nil))
 
 	if p.stream == nil {
-		return nil, errors.New("The pipeline must have at least one stream")
+		return nil, errors.Wrap(errors.New("The pipeline must have at least one stream"), p.Name())
 	}
 
 	for _, component := range p.components {
 		instance := component.Instance()
+
 		p.injector.Set(instance.Type(), instance.Name(), instance.Value())
+	}
+
+	if err := p.checkDependence(); err != nil {
+		return nil, errors.Wrapf(err, "Pipeline(%s)", p.Name())
 	}
 
 	return p, nil
@@ -71,6 +83,7 @@ func NewPipelineByConfig(conf Config, opts ...Option) (*Pipeline, error) {
 	return New(
 		append(
 			[]Option{
+				WithName(conf.Name),
 				WithComponents(components...),
 				WithStream(stream),
 			},
@@ -79,59 +92,113 @@ func NewPipelineByConfig(conf Config, opts ...Option) (*Pipeline, error) {
 	)
 }
 
-func (c *Pipeline) ID() string {
-	return c.id
+func (p *Pipeline) checkDependence() error {
+	checkInj := inject.New()
+	checkInj.SetParent(p.injector)
+	checkInj = NewLoggerInjector(fmt.Sprintf("Pipeline(%s)", p.Name()), checkInj)
+	return check(p.stream, checkInj)
 }
 
-func (c *Pipeline) Name() string {
-	return c.name
+func (p *Pipeline) ID() string {
+	return p.id
 }
 
-func (c *Pipeline) Start() error {
-	// TODO start once
-	for _, c := range c.components {
+func (p *Pipeline) Name() string {
+	return p.name
+}
+
+func (p *Pipeline) Start() error {
+	if !atomic.CompareAndSwapInt32(&p.status, int32(Idle), int32(Running)) {
+		return nil
+	}
+
+	for _, c := range p.components {
 		if err := c.Start(); err != nil {
 			return err
 		}
 	}
 
-	for !c.isStopped() {
+	p.runningWg.Add(1)
+	defer p.runningWg.Done()
+
+	for !p.isStopped() {
 		select {
-		case <-c.ctx.Done():
-			c.Stop()
+		case <-p.ctx.Done():
+			p.Stop()
 		default:
 		}
 
-		ctx, cancel := context.WithCancel(c.ctx)
+		p.ctrlWg.Wait()
+
+		ctx, cancel := context.WithCancel(p.ctx)
 		defer cancel()
 
-		c := NewExecContext(ctx, c.stream, c.injector)
+		c := NewExecContext(ctx, p.stream, p.injector)
 		if err := c.Run(); err != nil {
 			log.Error("[Pipeline] error: %v", err)
 		}
 	}
+
 	return nil
 }
 
-func (c *Pipeline) isStopped() bool {
+func (p *Pipeline) Wait() {
+	if atomic.CompareAndSwapInt32(&p.status, int32(Running), int32(Waiting)) {
+		p.ctrlWg.Add(1)
+	}
+}
+
+func (p *Pipeline) Resume() {
+	if atomic.CompareAndSwapInt32(&p.status, int32(Waiting), int32(Running)) {
+		p.ctrlWg.Done()
+	}
+}
+
+func (p *Pipeline) Stop() {
+	if p.isStopped() {
+		return
+	}
+
+	close(p.done)
+	atomic.StoreInt32(&p.status, int32(Closed))
+	p.runningWg.Wait()
+
+	for _, c := range p.components {
+		if err := c.Stop(); err != nil {
+			log.Error("Failed to stop %s component error: %s", c.Instance().Name(), err)
+		}
+	}
+}
+
+func (p *Pipeline) isStopped() bool {
 	select {
-	case <-c.done:
+	case <-p.done:
 		return true
 	default:
 	}
 	return false
 }
 
-func (c *Pipeline) Stop() {
-	if c.isStopped() {
-		return
-	}
-	close(c.done)
+func (p *Pipeline) Status() string {
+	return status(p.status).String()
 }
 
-func (c *Pipeline) ListComponent() []string {
+// 单词执行并尝试从容器中捞回一些执行过程中的数据
+func (p *Pipeline) Exec(ctx context.Context, ret interface{}) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	c := NewExecContext(ctx, p.stream, p.injector)
+	if err := c.Run(); err != nil {
+		log.Error("[Pipeline] error: %v", err)
+	}
+
+	return c.injector.Apply(ret)
+}
+
+func (p *Pipeline) ListComponent() []string {
 	var list []string
-	for _, component := range c.components {
+	for _, component := range p.components {
 		i := component.Instance()
 		list = append(list, fmt.Sprintf("Name: %s, Type: %s", i.Name(), i.Type()))
 	}

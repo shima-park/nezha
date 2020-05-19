@@ -41,20 +41,28 @@ func main() {
 	pipeConf := pipeline.Config{
 		Name: "test_pipeline",
 		Components: []map[string]string{
-			{"io_reader": `{"Name":"Stdin","Path":"stdin"}`},
-			{"io_writer": `{"Name":"Stdout","Path":"stdout"}`},
+			{"io_reader": `
+name: Stdin
+path: stdin`},
+			{"io_writer": `
+name: Stdout
+path: stdout`},
 		},
 	}
 
 	pipeConf.
 		AddStream(pipeline.StreamConfig{
 			ProcessorName: "read_line_from_stdin",
-		}).
-		AddStream(pipeline.StreamConfig{
-			ProcessorName: "jsondecode_str_2_foo",
-		}).
-		AddStream(pipeline.StreamConfig{
-			ProcessorName: "write_foo_2_stdout",
+			Childs: []pipeline.StreamConfig{
+				pipeline.StreamConfig{
+					ProcessorName: "jsondecode_str_2_foo",
+					Childs: []pipeline.StreamConfig{
+						pipeline.StreamConfig{
+							ProcessorName: "write_foo_2_stdout",
+						},
+					},
+				},
+			},
 		})
 
 	c, err := pipeline.NewPipelineByConfig(pipeConf)

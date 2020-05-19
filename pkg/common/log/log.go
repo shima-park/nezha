@@ -16,15 +16,15 @@ func (l *Logger) print(level string, format string, args ...interface{}) {
 }
 
 func (l *Logger) Info(format string, args ...interface{}) {
-	l.print("[INFO]", format, args...)
+	l.print("[INFO] ", format, args...)
 }
 
 func (l *Logger) Warn(format string, args ...interface{}) {
-	l.print("[Warn]", format, args...)
+	l.print("[Warn] ", format, args...)
 }
 
 func (l *Logger) Error(format string, args ...interface{}) {
-	l.print("[EROR]", format, args...)
+	l.print("[EROR] ", format, args...)
 }
 
 func Info(format string, args ...interface{}) {

@@ -2,20 +2,22 @@ package pipeline
 
 import (
 	"errors"
-	"github.com/shima-park/nezha/pkg/common/log"
-	"github.com/shima-park/nezha/pkg/processor"
 	"strings"
 	"sync"
+
+	"github.com/shima-park/nezha/pkg/common/log"
+	"github.com/shima-park/nezha/pkg/processor"
 
 	"github.com/google/uuid"
 )
 
 type Stream struct {
-	rwlock    sync.RWMutex
-	name      string
-	processor processor.Processor
-	parent    *Stream
-	childs    []*Stream
+	rwlock        sync.RWMutex
+	name          string
+	processorName string
+	processor     processor.Processor
+	parent        *Stream
+	childs        []*Stream
 }
 
 func NewStream(conf StreamConfig) (*Stream, error) {
@@ -25,12 +27,13 @@ func NewStream(conf StreamConfig) (*Stream, error) {
 	}
 
 	f := &Stream{
-		name:      conf.Name,
-		processor: p,
+		name:          conf.Name,
+		processorName: conf.ProcessorName,
+		processor:     p,
 	}
 
 	if f.name == "" {
-		f.name = uuid.New().String()
+		f.name = strings.Join([]string{conf.ProcessorName, uuid.New().String()}, ":")
 	}
 
 	for _, subConf := range conf.Childs {

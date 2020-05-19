@@ -67,6 +67,12 @@ github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 h1:dY6ETXrvDG7
 github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/shima-park/inject v1.0.0 h1:kCRfTXeo6K24L7naUpdUQv/rXPIqS5znyNri3u28YtM=
 github.com/shima-park/inject v1.0.0/go.mod h1:mekZ5aq/34VZ7bZkxnDfmCMDO4iHIxeHUdxPFxoCL50=
+github.com/shima-park/inject v1.0.1 h1:1wF7v1itXjVbMERu5uMhnM6qWTZgfiklLdzFmwc/0bQ=
+github.com/shima-park/inject v1.0.1/go.mod h1:mekZ5aq/34VZ7bZkxnDfmCMDO4iHIxeHUdxPFxoCL50=
+github.com/shima-park/inject v1.0.2 h1:ewauiWsnXx5Q/GbIb/zY/QXRoHC9xJ5MJb10xqL+oTA=
+github.com/shima-park/inject v1.0.2/go.mod h1:mekZ5aq/34VZ7bZkxnDfmCMDO4iHIxeHUdxPFxoCL50=
+github.com/shima-park/inject v1.0.3 h1:dv/mlvTFbzIjomxWvA72Pd0gR8PYDtg3Td6u/jQRWvk=
+github.com/shima-park/inject v1.0.3/go.mod h1:mekZ5aq/34VZ7bZkxnDfmCMDO4iHIxeHUdxPFxoCL50=
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=

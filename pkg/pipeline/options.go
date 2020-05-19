@@ -2,6 +2,8 @@ package pipeline
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/shima-park/inject"
@@ -42,5 +44,9 @@ func WithName(name string) Option {
 func apply(p *Pipeline, opts []Option) {
 	for _, opt := range opts {
 		opt(p)
+	}
+
+	if p.name == "" {
+		p.name = uuid.New().String()
 	}
 }

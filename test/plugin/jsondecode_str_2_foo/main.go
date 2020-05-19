@@ -15,7 +15,7 @@ var Bundle = plugin.Bundle(
 )
 
 type Request struct {
-	Ctx    context.Context `inject`
+	Ctx    context.Context `inject:"Context"`
 	Msg    string          `inject:"Message"`
 	Reader io.Reader       `inject:"Reader"`
 }
