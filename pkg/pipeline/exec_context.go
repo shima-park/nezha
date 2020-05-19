@@ -45,11 +45,11 @@ func run(s *Stream, injector inject.Injector) error {
 
 	vals, err := injector.Invoke(s.processor)
 	if err != nil {
-		return errors.Wrap(err, s.name)
+		return errors.Wrapf(err, "Stream(%s)", s.Name())
 	}
 
 	if err = setInjector(injector, vals...); err != nil {
-		return err
+		return errors.Wrapf(err, "Stream(%s)", s.Name())
 	}
 
 	for i := 0; i < len(s.childs); i++ {
@@ -109,11 +109,11 @@ func check(s *Stream, inj inject.Injector) error {
 	}
 
 	if err := processor.Validate(s.processor); err != nil {
-		return err
+		return errors.Wrapf(err, "Stream(%s)", s.Name())
 	}
 
-	if err := checkDep(inj, s.name, s.processor); err != nil {
-		return err
+	if err := checkDep(inj, s.processor); err != nil {
+		return errors.Wrapf(err, "Stream(%s)", s.Name())
 	}
 
 	for i := 0; i < len(s.childs); i++ {
@@ -124,21 +124,21 @@ func check(s *Stream, inj inject.Injector) error {
 	return nil
 }
 
-func checkDep(inj inject.Injector, streamName string, f interface{}) error {
+func checkDep(inj inject.Injector, f interface{}) error {
 	t := reflect.TypeOf(f)
 
-	if err := checkIn(inj, t, streamName); err != nil {
+	if err := checkIn(inj, t); err != nil {
 		return err
 	}
 
-	if err := checkOut(inj, t, streamName); err != nil {
+	if err := checkOut(inj, t); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func checkIn(inj inject.Injector, t reflect.Type, streamName string) error {
+func checkIn(inj inject.Injector, t reflect.Type) error {
 	for i := 0; i < t.NumIn(); i++ {
 		argType := t.In(i)
 
@@ -147,8 +147,7 @@ func checkIn(inj inject.Injector, t reflect.Type, streamName string) error {
 		}
 
 		if argType.Kind() != reflect.Struct {
-			err := fmt.Errorf("Cannot support types other than structures %v", argType)
-			return errors.Wrapf(err, "Stream(%s)", streamName)
+			return fmt.Errorf("Cannot support types other than structures %v", argType)
 		}
 
 		val := reflect.New(argType)
@@ -183,8 +182,7 @@ func checkIn(inj inject.Injector, t reflect.Type, streamName string) error {
 			}
 
 			if ok := inj.Exists(tt, injectName); !ok {
-				err := fmt.Errorf("Value not found for type: %v name: %v", tt, injectName)
-				return errors.Wrapf(err, "Stream(%s)", streamName)
+				return fmt.Errorf("Value not found for type: %v name: %v", tt, injectName)
 			}
 		}
 
@@ -192,7 +190,7 @@ func checkIn(inj inject.Injector, t reflect.Type, streamName string) error {
 	return nil
 }
 
-func checkOut(inj inject.Injector, t reflect.Type, streamName string) error {
+func checkOut(inj inject.Injector, t reflect.Type) error {
 	for i := 0; i < t.NumOut(); i++ {
 		outType := t.Out(i)
 
@@ -205,8 +203,7 @@ func checkOut(inj inject.Injector, t reflect.Type, streamName string) error {
 		}
 
 		if outType.Kind() != reflect.Struct {
-			err := fmt.Errorf("Cannot support types other than structures %v", outType)
-			return errors.Wrapf(err, "Stream(%s)", streamName)
+			return fmt.Errorf("Cannot support types other than structures %v", outType)
 		}
 
 		val := reflect.New(outType)
