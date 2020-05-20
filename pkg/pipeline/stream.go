@@ -12,12 +12,13 @@ import (
 )
 
 type Stream struct {
-	rwlock        sync.RWMutex
-	name          string
-	processorName string
-	processor     processor.Processor
-	parent        *Stream
-	childs        []*Stream
+	rwlock          sync.RWMutex
+	name            string
+	processorName   string
+	processorConfig string
+	processor       processor.Processor
+	parent          *Stream
+	childs          []*Stream
 }
 
 func NewStream(conf StreamConfig) (*Stream, error) {
@@ -27,13 +28,14 @@ func NewStream(conf StreamConfig) (*Stream, error) {
 	}
 
 	f := &Stream{
-		name:          conf.Name,
-		processorName: conf.ProcessorName,
-		processor:     p,
+		name:            conf.Name,
+		processorName:   conf.ProcessorName,
+		processorConfig: conf.ProcessorConfig,
+		processor:       p,
 	}
 
 	if f.name == "" {
-		f.name = strings.Join([]string{conf.ProcessorName, uuid.New().String()}, ":")
+		f.name = uuid.New().String()
 	}
 
 	for _, subConf := range conf.Childs {

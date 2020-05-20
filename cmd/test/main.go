@@ -70,7 +70,14 @@ path: stdout`},
 		panic(err)
 	}
 
-	fmt.Println("Components:\n", strings.Join(c.ListComponent(), "\n"))
+	fmt.Println("Components:")
+	pipeline.PrintPipelineComponents(os.Stdout, c)
+	fmt.Println("Processor:")
+	pipeline.PrintPipelineProcessor(os.Stdout, c)
+
+	if errs := c.CheckDependence(); len(errs) > 0 {
+		panic(errs[0])
+	}
 
 	if err := c.Start(); err != nil {
 		panic(err)

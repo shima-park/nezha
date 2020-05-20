@@ -3,7 +3,7 @@ package component
 import "reflect"
 
 type Component interface {
-	// 组件实例配置
+	// 组件示例配置
 	SampleConfig() string
 
 	// 组件描述

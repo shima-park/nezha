@@ -3,15 +3,15 @@ package pipeline
 import "fmt"
 
 var (
-	Idle    status = 0
-	Running status = 1
-	Waiting status = 2
-	Closed  status = 3
+	Idle    state = 0
+	Running state = 1
+	Waiting state = 2
+	Closed  state = 3
 )
 
-type status int32
+type state int32
 
-func (s status) String() string {
+func (s state) String() string {
 	switch s {
 	case Idle:
 		return "idle"

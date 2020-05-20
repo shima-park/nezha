@@ -19,14 +19,20 @@ type Pipeline struct {
 	ctx        context.Context
 	id         string
 	name       string
-	components []component.Component
+	components []NamedComponent
 	injector   inject.Injector
 	stream     *Stream
 
-	status    int32
+	state     int32
 	ctrlWg    sync.WaitGroup
 	runningWg sync.WaitGroup
 	done      chan struct{}
+}
+
+type NamedComponent struct {
+	Name      string
+	RawConfig string
+	Component component.Component
 }
 
 func New(opts ...Option) (*Pipeline, error) {
@@ -46,21 +52,17 @@ func New(opts ...Option) (*Pipeline, error) {
 		return nil, errors.Wrap(errors.New("The pipeline must have at least one stream"), p.Name())
 	}
 
-	for _, component := range p.components {
-		instance := component.Instance()
+	for _, c := range p.components {
+		instance := c.Component.Instance()
 
 		p.injector.Set(instance.Type(), instance.Name(), instance.Value())
-	}
-
-	if err := p.checkDependence(); err != nil {
-		return nil, errors.Wrapf(err, "Pipeline(%s)", p.Name())
 	}
 
 	return p, nil
 }
 
 func NewPipelineByConfig(conf Config, opts ...Option) (*Pipeline, error) {
-	var components []component.Component
+	var components []NamedComponent
 	for _, name2config := range conf.Components {
 		for componentName, rawConfig := range name2config {
 			factory, err := component.GetFactory(componentName)
@@ -71,7 +73,11 @@ func NewPipelineByConfig(conf Config, opts ...Option) (*Pipeline, error) {
 			if err != nil {
 				return nil, err
 			}
-			components = append(components, c)
+			components = append(components, NamedComponent{
+				Name:      componentName,
+				RawConfig: rawConfig,
+				Component: c,
+			})
 		}
 	}
 
@@ -92,7 +98,7 @@ func NewPipelineByConfig(conf Config, opts ...Option) (*Pipeline, error) {
 	)
 }
 
-func (p *Pipeline) checkDependence() error {
+func (p *Pipeline) CheckDependence() []error {
 	checkInj := inject.New()
 	checkInj.SetParent(p.injector)
 	checkInj = NewLoggerInjector(fmt.Sprintf("Pipeline(%s)", p.Name()), checkInj)
@@ -108,12 +114,12 @@ func (p *Pipeline) Name() string {
 }
 
 func (p *Pipeline) Start() error {
-	if !atomic.CompareAndSwapInt32(&p.status, int32(Idle), int32(Running)) {
+	if !atomic.CompareAndSwapInt32(&p.state, int32(Idle), int32(Running)) {
 		return nil
 	}
 
 	for _, c := range p.components {
-		if err := c.Start(); err != nil {
+		if err := c.Component.Start(); err != nil {
 			return err
 		}
 	}
@@ -143,13 +149,13 @@ func (p *Pipeline) Start() error {
 }
 
 func (p *Pipeline) Wait() {
-	if atomic.CompareAndSwapInt32(&p.status, int32(Running), int32(Waiting)) {
+	if atomic.CompareAndSwapInt32(&p.state, int32(Running), int32(Waiting)) {
 		p.ctrlWg.Add(1)
 	}
 }
 
 func (p *Pipeline) Resume() {
-	if atomic.CompareAndSwapInt32(&p.status, int32(Waiting), int32(Running)) {
+	if atomic.CompareAndSwapInt32(&p.state, int32(Waiting), int32(Running)) {
 		p.ctrlWg.Done()
 	}
 }
@@ -160,12 +166,12 @@ func (p *Pipeline) Stop() {
 	}
 
 	close(p.done)
-	atomic.StoreInt32(&p.status, int32(Closed))
+	atomic.StoreInt32(&p.state, int32(Closed))
 	p.runningWg.Wait()
 
 	for _, c := range p.components {
-		if err := c.Stop(); err != nil {
-			log.Error("Failed to stop %s component error: %s", c.Instance().Name(), err)
+		if err := c.Component.Stop(); err != nil {
+			log.Error("Failed to stop %s component error: %s", c.Component.Instance().Name(), err)
 		}
 	}
 }
@@ -179,8 +185,8 @@ func (p *Pipeline) isStopped() bool {
 	return false
 }
 
-func (p *Pipeline) Status() string {
-	return status(p.status).String()
+func (p *Pipeline) State() string {
+	return state(p.state).String()
 }
 
 // 单词执行并尝试从容器中捞回一些执行过程中的数据
@@ -196,11 +202,63 @@ func (p *Pipeline) Exec(ctx context.Context, ret interface{}) error {
 	return c.injector.Apply(ret)
 }
 
-func (p *Pipeline) ListComponent() []string {
-	var list []string
-	for _, component := range p.components {
-		i := component.Instance()
-		list = append(list, fmt.Sprintf("Name: %s, Type: %s", i.Name(), i.Type()))
+type ComponentView struct {
+	Name         string
+	RawConfig    string
+	SampleConfig string
+	Description  string
+	InjectName   string
+	ReflectType  string
+	ReflectValue string
+}
+
+func (p *Pipeline) ListComponent() []ComponentView {
+	var list []ComponentView
+	for _, c := range p.components {
+		i := c.Component.Instance()
+		list = append(list, ComponentView{
+			Name:         c.Name,
+			RawConfig:    c.RawConfig,
+			SampleConfig: c.Component.SampleConfig(),
+			Description:  c.Component.Description(),
+			InjectName:   i.Name(),
+			ReflectType:  i.Type().String(),
+			ReflectValue: i.Value().String(),
+		})
 	}
 	return list
+}
+
+type ProcessorView struct {
+	Name            string
+	ProcessorName   string
+	ProcessorConfig string
+	Request         []Receptor
+	Response        []Receptor
+}
+
+func (p *Pipeline) ListProcessor() []ProcessorView {
+	var list []ProcessorView
+	listProcessor(p.stream, &list)
+	return list
+}
+
+func listProcessor(stream *Stream, list *[]ProcessorView) {
+	if stream == nil {
+		return
+	}
+
+	req, resp := getFuncReqAndRespReceptorList(stream.processor)
+
+	(*list) = append((*list), ProcessorView{
+		Name:            stream.name,
+		ProcessorName:   stream.processorName,
+		ProcessorConfig: stream.processorConfig,
+		Request:         req,
+		Response:        resp,
+	})
+
+	for i := 0; i < len(stream.childs); i++ {
+		listProcessor(stream.childs[i], list)
+	}
 }

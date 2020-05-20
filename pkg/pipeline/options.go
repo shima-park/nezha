@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/shima-park/inject"
 )
@@ -17,7 +16,7 @@ func WithContext(ctx context.Context) Option {
 	}
 }
 
-func WithComponents(components ...component.Component) Option {
+func WithComponents(components ...NamedComponent) Option {
 	return func(p *Pipeline) {
 		p.components = components
 	}
