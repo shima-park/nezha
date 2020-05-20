@@ -9,12 +9,26 @@ import (
 func PrintPipelineComponents(w io.Writer, p *Pipeline) {
 	table := tablewriter.NewWriter(w)
 	table.SetHeader([]string{
-		"Name", "RawConfig", "SampleConfig", "Description",
-		"Inject Name", "Reflect Type", "Reflect Value",
+		"Component Name", "Inject Name", "Reflect Type", "Reflect Value",
+		"Raw Config", "Sample Config", "Description",
 	})
 	table.SetRowLine(true)
 	for _, c := range p.ListComponent() {
-		table.Append([]string{c.Name, c.RawConfig, c.SampleConfig, c.Description, c.InjectName, c.ReflectType, c.ReflectValue})
+		arr := []string{
+			c.Name, c.InjectName, c.ReflectType, c.ReflectValue,
+			c.RawConfig, c.SampleConfig, c.Description,
+		}
+
+		table.Rich(arr, []tablewriter.Colors{
+			tablewriter.Colors{},
+			tablewriter.Colors{tablewriter.Normal, tablewriter.FgGreenColor},
+			tablewriter.Colors{},
+			tablewriter.Colors{},
+			tablewriter.Colors{},
+			tablewriter.Colors{},
+			tablewriter.Colors{},
+		})
+
 	}
 	table.Render()
 }
@@ -23,7 +37,7 @@ func PrintPipelineProcessor(w io.Writer, p *Pipeline) {
 	mdeErrs := filterMissingDependencyError(p.CheckDependence())
 
 	table := tablewriter.NewWriter(w)
-	table.SetHeader([]string{"ProcessorName", "ProcessorConfig",
+	table.SetHeader([]string{"Processor Name", "Config",
 		"Request struct name", "Request Field", "Request field type", "Request inject name",
 		"Response struct name", "Response Field", "Response field type", "Response inject name"})
 	table.SetAutoMergeCells(true)
@@ -64,7 +78,18 @@ func PrintPipelineProcessor(w io.Writer, p *Pipeline) {
 					tablewriter.Colors{},
 				})
 			} else {
-				table.Append(arr)
+				table.Rich(arr, []tablewriter.Colors{
+					tablewriter.Colors{},
+					tablewriter.Colors{},
+					tablewriter.Colors{},
+					tablewriter.Colors{},
+					tablewriter.Colors{},
+					tablewriter.Colors{tablewriter.Normal, tablewriter.FgCyanColor},
+					tablewriter.Colors{},
+					tablewriter.Colors{},
+					tablewriter.Colors{},
+					tablewriter.Colors{tablewriter.Normal, tablewriter.FgGreenColor},
+				})
 			}
 			i++
 		}
