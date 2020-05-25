@@ -7,7 +7,7 @@ import (
 	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/component"
 
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 )
 
 var _ component.Component = &Client{}
