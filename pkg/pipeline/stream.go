@@ -35,7 +35,7 @@ func NewStream(conf StreamConfig) (*Stream, error) {
 	}
 
 	if f.name == "" {
-		f.name = uuid.New().String()
+		f.name = conf.ProcessorName + uuid.New().String()
 	}
 
 	for _, subConf := range conf.Childs {
