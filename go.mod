@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/Shopify/sarama v1.26.3
 	github.com/bsm/sarama-cluster v2.1.15+incompatible
+	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/olekukonko/tablewriter v0.0.4
