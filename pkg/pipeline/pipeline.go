@@ -119,9 +119,11 @@ func (p *Pipeline) Start() error {
 	}
 
 	for _, c := range p.components {
+		log.Info(c.Name + "is starting")
 		if err := c.Component.Start(); err != nil {
 			return err
 		}
+		log.Info(c.Name + "is started")
 	}
 
 	p.runningWg.Add(1)
@@ -170,9 +172,11 @@ func (p *Pipeline) Stop() {
 	p.runningWg.Wait()
 
 	for _, c := range p.components {
+		log.Info(c.Name + "is stopping")
 		if err := c.Component.Stop(); err != nil {
 			log.Error("Failed to stop %s component error: %s", c.Component.Instance().Name(), err)
 		}
+		log.Info(c.Name + "is stopped")
 	}
 }
 

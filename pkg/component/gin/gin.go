@@ -2,10 +2,9 @@ package gin
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +14,7 @@ import (
 )
 
 var _ component.Component = &Gin{}
+var defaultGracefulStopTimeout = time.Second * 30
 
 func init() {
 	if err := component.Register("gin_server", func(config string) (component.Component, error) {
@@ -25,15 +25,15 @@ func init() {
 }
 
 type GinConfig struct {
-	Name    string            `yaml:"name"`
-	Addr    string            `yaml:"addr"`
-	Routers map[string]string `yaml:"routers"`
+	Name                string        `yaml:"name"`
+	Addr                string        `yaml:"addr"`
+	GracefulStopTimeout time.Duration `yaml:"graceful_stop_timeout"`
 }
 
 type Gin struct {
 	conf     GinConfig
 	srv      *http.Server
-	ctxCh    chan *gin.Context
+	gin      *gin.Engine
 	instance component.Instance
 }
 
@@ -46,39 +46,19 @@ func NewGin(rawConfig string) (*Gin, error) {
 
 	log.Info("Gin config: %+v", conf)
 
+	if conf.Name == "" {
+		return nil, errors.New("Component:gin_server name cannot be empty")
+	}
+
+	if conf.Addr == "" {
+		return nil, errors.New("Component:gin_server name cannot be empty")
+	}
+
+	if conf.GracefulStopTimeout < time.Second {
+		conf.GracefulStopTimeout = defaultGracefulStopTimeout
+	}
+
 	g := gin.New()
-
-	var ctxCh = make(chan *gin.Context, 1024)
-	handler := func(ctx *gin.Context) {
-		select {
-		case ctxCh <- ctx:
-		default:
-			ctx.Abort()
-		}
-	}
-
-	for method, path := range conf.Routers {
-		switch strings.ToUpper(method) {
-		case "Any":
-			g.Any(path, handler)
-		case "GET":
-			g.GET(path, handler)
-		case "POST":
-			g.POST(path, handler)
-		case "DELETE":
-			g.DELETE(path, handler)
-		case "PATCH":
-			g.PATCH(path, handler)
-		case "PUT":
-			g.PUT(path, handler)
-		case "OPTIONS":
-			g.OPTIONS(path, handler)
-		case "HEAD":
-			g.HEAD(path, handler)
-		default:
-			return nil, fmt.Errorf("Unsupported method: %s path: %s", method, path)
-		}
-	}
 
 	srv := &http.Server{
 		Addr:    conf.Addr,
@@ -86,24 +66,21 @@ func NewGin(rawConfig string) (*Gin, error) {
 	}
 
 	return &Gin{
-		srv:   srv,
-		ctxCh: ctxCh,
+		srv: srv,
 		instance: component.NewInstance(
 			conf.Name,
-			reflect.TypeOf(ctxCh),
-			reflect.ValueOf(ctxCh),
-			ctxCh,
+			reflect.TypeOf(g),
+			reflect.ValueOf(g),
+			g,
 		),
 	}, nil
 }
 
 func (g *Gin) SampleConfig() string {
 	conf := GinConfig{
-		Name: "GinServer",
-		Addr: ":8080",
-		Routers: map[string]string{
-			"GET": "/hello",
-		},
+		Name:                "GinServer",
+		Addr:                ":8080",
+		GracefulStopTimeout: defaultGracefulStopTimeout,
 	}
 
 	b, _ := config.Marshal(&conf)
@@ -139,7 +116,7 @@ func (g *Gin) Start() error {
 }
 
 func (g *Gin) Stop() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), g.conf.GracefulStopTimeout)
 	defer cancel()
 	if err := g.srv.Shutdown(ctx); err != nil {
 		return err
