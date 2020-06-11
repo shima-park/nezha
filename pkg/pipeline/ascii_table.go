@@ -9,21 +9,17 @@ import (
 func PrintPipelineComponents(w io.Writer, p *Pipeline) {
 	table := tablewriter.NewWriter(w)
 	table.SetHeader([]string{
-		"Component Name", "Inject Name", "Reflect Type", "Reflect Value",
-		"Raw Config", "Sample Config", "Description",
+		"Component Name", "Inject Name", "Reflect Type", "Reflect Value", "Description",
 	})
 	table.SetRowLine(true)
 	for _, c := range p.ListComponent() {
 		arr := []string{
-			c.Name, c.InjectName, c.ReflectType, c.ReflectValue,
-			c.RawConfig, c.SampleConfig, c.Description,
+			c.Name, c.InjectName, c.ReflectType, c.ReflectValue, c.Description,
 		}
 
 		table.Rich(arr, []tablewriter.Colors{
 			tablewriter.Colors{},
 			tablewriter.Colors{tablewriter.Normal, tablewriter.FgGreenColor},
-			tablewriter.Colors{},
-			tablewriter.Colors{},
 			tablewriter.Colors{},
 			tablewriter.Colors{},
 			tablewriter.Colors{},
@@ -37,7 +33,7 @@ func PrintPipelineProcessor(w io.Writer, p *Pipeline) {
 	mdeErrs := filterMissingDependencyError(p.CheckDependence())
 
 	table := tablewriter.NewWriter(w)
-	table.SetHeader([]string{"Processor Name", "Config",
+	table.SetHeader([]string{"Processor Name", //"Config",
 		"Request struct name", "Request Field", "Request field type", "Request inject name",
 		"Response struct name", "Response Field", "Response field type", "Response inject name"})
 	table.SetAutoMergeCells(true)
@@ -49,7 +45,8 @@ func PrintPipelineProcessor(w io.Writer, p *Pipeline) {
 			max = len(p.Response)
 		}
 		for i < max {
-			var arr = []string{p.ProcessorName, p.ProcessorConfig}
+			var arr = []string{p.Processor.Name} //p.Processor.RawConfig
+
 			var mdeErr *MissingDependencyError
 			var req Receptor
 			if i < len(p.Request) {
@@ -68,7 +65,6 @@ func PrintPipelineProcessor(w io.Writer, p *Pipeline) {
 				table.Rich(arr, []tablewriter.Colors{
 					tablewriter.Colors{},
 					tablewriter.Colors{},
-					tablewriter.Colors{},
 					tablewriter.Colors{tablewriter.BgRedColor, tablewriter.FgWhiteColor},
 					tablewriter.Colors{tablewriter.BgRedColor, tablewriter.FgWhiteColor},
 					tablewriter.Colors{tablewriter.BgRedColor, tablewriter.FgWhiteColor},
@@ -79,7 +75,6 @@ func PrintPipelineProcessor(w io.Writer, p *Pipeline) {
 				})
 			} else {
 				table.Rich(arr, []tablewriter.Colors{
-					tablewriter.Colors{},
 					tablewriter.Colors{},
 					tablewriter.Colors{},
 					tablewriter.Colors{},

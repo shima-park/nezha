@@ -4,21 +4,30 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/robfig/cron/v3"
 
-	"github.com/shima-park/inject"
+	"github.com/shima-park/nezha/pkg/inject"
 )
 
 type Option func(*Pipeline)
 
 func WithContext(ctx context.Context) Option {
 	return func(p *Pipeline) {
+		ctx, cancel := context.WithCancel(ctx)
 		p.ctx = ctx
+		p.cancel = cancel
 	}
 }
 
 func WithComponents(components ...NamedComponent) Option {
 	return func(p *Pipeline) {
 		p.components = components
+	}
+}
+
+func WithProcessors(processors ...NamedProcessor) Option {
+	return func(p *Pipeline) {
+		p.processors = processors
 	}
 }
 
@@ -37,6 +46,12 @@ func WithStream(stream *Stream) Option {
 func WithName(name string) Option {
 	return func(p *Pipeline) {
 		p.name = name
+	}
+}
+
+func WithSchedule(s cron.Schedule) Option {
+	return func(p *Pipeline) {
+		p.schedule = s
 	}
 }
 

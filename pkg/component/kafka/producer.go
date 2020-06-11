@@ -8,7 +8,7 @@ import (
 	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/Shopify/sarama"
-	"github.com/shima-park/inject"
+	"github.com/shima-park/nezha/pkg/inject"
 )
 
 var _ component.Component = &Producer{}

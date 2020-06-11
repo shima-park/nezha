@@ -6,7 +6,7 @@ var (
 	Idle    state = 0
 	Running state = 1
 	Waiting state = 2
-	Closed  state = 3
+	Exited  state = 3
 )
 
 type state int32
@@ -19,8 +19,8 @@ func (s state) String() string {
 		return "running"
 	case Waiting:
 		return "waiting"
-	case Closed:
-		return "closed"
+	case Exited:
+		return "exited"
 	}
 	return fmt.Sprintf("unknown(%d)", s)
 }

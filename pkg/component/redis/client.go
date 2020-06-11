@@ -1,4 +1,4 @@
-package pika
+package redis
 
 import (
 	"reflect"
@@ -13,7 +13,7 @@ import (
 var _ component.Component = &Client{}
 
 func init() {
-	if err := component.Register("pika_client", func(config string) (component.Component, error) {
+	if err := component.Register("redis_client", func(config string) (component.Component, error) {
 		return NewClient(config)
 	}); err != nil {
 		panic(err)
@@ -62,7 +62,7 @@ func NewClient(rawConfig string) (*Client, error) {
 
 func (c *Client) SampleConfig() string {
 	conf := ClientConfig{
-		Name:     "MyPiKa",
+		Name:     "MyRedisClient",
 		Addr:     "127.0.0.1:18000",
 		Password: "",
 		DB:       0,

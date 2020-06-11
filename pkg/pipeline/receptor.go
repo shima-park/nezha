@@ -3,7 +3,7 @@ package pipeline
 import (
 	"reflect"
 
-	"github.com/shima-park/inject"
+	"github.com/shima-park/nezha/pkg/inject"
 	"github.com/shima-park/nezha/pkg/processor"
 )
 
@@ -48,7 +48,7 @@ func getFuncReqAndRespReceptorList(f interface{}) ([]Receptor, []Receptor) {
 		for i := 0; i < val.NumField(); i++ {
 			f := val.Field(i)
 			structField := typ.Field(i)
-			injectName := getInjectName(structField)
+			injectName := structField.Tag.Get("inject")
 
 			var tt reflect.Type
 			if f.Type().Kind() == reflect.Interface {
@@ -97,7 +97,7 @@ func getFuncReqAndRespReceptorList(f interface{}) ([]Receptor, []Receptor) {
 		for i := 0; i < val.NumField(); i++ {
 			f := val.Field(i)
 			structField := typ.Field(i)
-			injectName := getInjectName(structField)
+			injectName := structField.Tag.Get("inject")
 
 			var tt reflect.Type
 			if f.Type().Kind() == reflect.Interface {

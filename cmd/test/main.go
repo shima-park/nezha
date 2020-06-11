@@ -5,36 +5,16 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 
-	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/common/plugin"
 	_ "github.com/shima-park/nezha/pkg/component/include"
 	"github.com/shima-park/nezha/pkg/pipeline"
 )
 
-var plugins = &pluginList{}
-
-func init() {
-	flag.Var(plugins, "plugin", "Load additional plugins")
-}
-
-func Initialize() error {
-	for _, path := range plugins.paths {
-		log.Info("loading plugin bundle: %v", path)
-
-		if err := plugin.LoadPlugins(path); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func main() {
 	flag.Parse()
 
-	if err := Initialize(); err != nil {
+	if err := plugin.Initialize(); err != nil {
 		panic(err)
 	}
 
@@ -48,22 +28,22 @@ path: stdin`},
 name: Stdout
 path: stdout`},
 		},
-	}
-
-	pipeConf.
-		AddStream(pipeline.StreamConfig{
-			ProcessorName: "read_line_from_stdin",
-			Childs: []pipeline.StreamConfig{
-				pipeline.StreamConfig{
-					ProcessorName: "jsondecode_str_2_foo",
-					Childs: []pipeline.StreamConfig{
-						pipeline.StreamConfig{
-							ProcessorName: "write_foo_2_stdout",
+		Pipeline: pipeline.PipelineConfig{
+			Stream: &pipeline.StreamConfig{
+				Name: "read_line_from_stdin",
+				Childs: []pipeline.StreamConfig{
+					pipeline.StreamConfig{
+						Name: "jsondecode_str_2_foo",
+						Childs: []pipeline.StreamConfig{
+							pipeline.StreamConfig{
+								Name: "write_foo_2_stdout",
+							},
 						},
 					},
 				},
 			},
-		})
+		},
+	}
 
 	c, err := pipeline.NewPipelineByConfig(pipeConf)
 	if err != nil {
@@ -88,23 +68,4 @@ path: stdout`},
 	<-signals
 
 	c.Stop()
-}
-
-type pluginList struct {
-	paths []string
-}
-
-func (p *pluginList) String() string {
-	return strings.Join(p.paths, ",")
-}
-
-func (p *pluginList) Set(v string) error {
-	for _, path := range p.paths {
-		if path == v {
-			log.Warn("%s is already a registered plugin", path)
-			return nil
-		}
-	}
-	p.paths = append(p.paths, v)
-	return nil
 }

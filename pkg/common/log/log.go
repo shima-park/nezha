@@ -1,6 +1,9 @@
 package log
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 var defaultLogger = &Logger{}
 
@@ -9,7 +12,13 @@ type Logger struct {
 
 func (l *Logger) print(level string, format string, args ...interface{}) {
 	if len(args) > 0 {
-		fmt.Println(fmt.Sprintf(level+format, args...))
+		fmt.Println(
+			fmt.Sprintf(level+"Time: %s "+format,
+				append([]interface{}{
+					time.Now().Format("2006-01-02 15:04:05"),
+				}, args...,
+				)...,
+			))
 		return
 	}
 	fmt.Println(level + format)

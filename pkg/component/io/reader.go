@@ -10,7 +10,7 @@ import (
 	"github.com/shima-park/nezha/pkg/component"
 
 	"github.com/pkg/errors"
-	"github.com/shima-park/inject"
+	"github.com/shima-park/nezha/pkg/inject"
 )
 
 var _ component.Component = &Reader{}

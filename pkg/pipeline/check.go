@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/pkg/errors"
-	"github.com/shima-park/inject"
+	"github.com/shima-park/nezha/pkg/inject"
 	"github.com/shima-park/nezha/pkg/processor"
+	"github.com/pkg/errors"
 )
+
+var errorInterface = reflect.TypeOf((*error)(nil)).Elem()
 
 type MissingDependencyError struct {
 	Field       string
@@ -20,17 +22,17 @@ func (e MissingDependencyError) Error() string {
 }
 
 func check(s *Stream, inj inject.Injector) []error {
-	if s == nil || s.processor == nil {
+	if s == nil || s.processor.Processor == nil {
 		return nil
 	}
 
 	var errs []error
-	if err := processor.Validate(s.processor); err != nil {
+	if err := processor.Validate(s.processor.Processor); err != nil {
 		errs = append(errs, errors.Wrapf(err, "Stream(%s)", s.Name()))
 		return errs
 	}
 
-	if err := checkDep(inj, s.processor); err != nil {
+	if err := checkDep(inj, s.processor.Processor); err != nil {
 		errs = append(errs, err...)
 	}
 
@@ -91,7 +93,7 @@ func checkIn(inj inject.Injector, t reflect.Type) []error {
 		for i := 0; i < val.NumField(); i++ {
 			f := val.Field(i)
 			structField := typ.Field(i)
-			injectName := getInjectName(structField)
+			injectName := structField.Tag.Get("inject")
 
 			var tt reflect.Type
 			if f.Type().Kind() == reflect.Interface {
@@ -101,7 +103,7 @@ func checkIn(inj inject.Injector, t reflect.Type) []error {
 				tt = f.Type()
 			}
 
-			if ok := inj.Exists(tt, injectName); !ok {
+			if val := inj.Get(tt, injectName); !val.IsValid() {
 				errs = append(errs, MissingDependencyError{
 					Field:       structField.Name,
 					ReflectType: tt.String(),
@@ -137,7 +139,7 @@ func checkOut(inj inject.Injector, t reflect.Type) []error {
 		// 结构体指针类型 (*Foo)(nil)
 		// 结构体类型 (Foo)({})
 		// 由于check流程是直接反射方法造处对应接口，无法或者接口类型的具体value
-		if err := setInjector(inj, val); err != nil {
+		if err := inj.MapValues(val); err != nil {
 			errs = append(errs, err)
 		}
 	}
