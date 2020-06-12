@@ -3,12 +3,6 @@ package component
 import "reflect"
 
 type Component interface {
-	// 组件示例配置
-	SampleConfig() string
-
-	// 组件描述
-	Description() string
-
 	// 获取组件实例对象
 	Instance() Instance
 

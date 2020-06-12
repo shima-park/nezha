@@ -16,13 +16,13 @@ import (
 
 type Stream struct {
 	rwlock    sync.RWMutex
-	processor NamedProcessor
+	processor Processor
 	parent    *Stream
 	childs    []*Stream
 	config    StreamConfig
 }
 
-func NewStream(conf StreamConfig, processors map[string]NamedProcessor) (*Stream, error) {
+func NewStream(conf StreamConfig, processors map[string]Processor) (*Stream, error) {
 	p, ok := processors[conf.Name]
 	if !ok {
 		return nil, fmt.Errorf("Not found processor %s", conf.Name)

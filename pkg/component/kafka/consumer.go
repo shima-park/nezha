@@ -4,22 +4,41 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/Shopify/sarama"
 	"github.com/shima-park/nezha/pkg/common/config"
 	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/component"
 
-	"github.com/Shopify/sarama"
 	cluster "github.com/bsm/sarama-cluster"
 )
 
-var _ component.Component = &Consumer{}
+var (
+	consumerFactory       component.Factory   = NewConsumerFactory()
+	_                     component.Component = &Consumer{}
+	defaultConsumerConfig                     = ConsumerConfig{
+		Name:              "MyKafkaConsumer",
+		Addrs:             []string{"localhost:9092"},
+		ConsumerGroup:     "my_consumer_group",
+		Topics:            []string{"my_topics"},
+		OffsetsInitial:    sarama.OffsetNewest,
+		OffsetsAutoCommit: true,
+	}
+	consumerDescription = "kafka consumer factory"
+)
 
 func init() {
-	if err := component.Register("kafka_consumer", func(config string) (component.Component, error) {
-		return NewConsumer(config)
-	}); err != nil {
+	if err := component.Register("kafka_consumer", consumerFactory); err != nil {
 		panic(err)
 	}
+}
+
+func NewConsumerFactory() component.Factory {
+	return component.NewFactory(
+		defaultConsumerConfig,
+		consumerDescription,
+		func(c string) (component.Component, error) {
+			return NewConsumer(c)
+		})
 }
 
 type ConsumerConfig struct {
@@ -39,7 +58,7 @@ type Consumer struct {
 }
 
 func NewConsumer(rawConfig string) (*Consumer, error) {
-	var conf ConsumerConfig
+	conf := defaultConsumerConfig
 	err := config.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
@@ -74,27 +93,6 @@ func NewConsumer(rawConfig string) (*Consumer, error) {
 			consumer,
 		),
 	}, nil
-}
-
-// SampleConfig returns the default configuration of the Input
-func (c *Consumer) SampleConfig() string {
-	conf := ConsumerConfig{
-		Name:              "MyKafkaConsumer",
-		Addrs:             []string{"localhost:9092"},
-		ConsumerGroup:     "my_consumer_group",
-		Topics:            []string{"my_topics"},
-		OffsetsInitial:    sarama.OffsetNewest,
-		OffsetsAutoCommit: true,
-	}
-
-	b, _ := config.Marshal(&conf)
-
-	return string(b)
-}
-
-// Description returns a one-sentence description on the Input
-func (c *Consumer) Description() string {
-	return "kafka consumer factory"
 }
 
 func (c *Consumer) Instance() component.Instance {

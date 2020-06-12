@@ -205,7 +205,6 @@ func (i *injector) set(typ reflect.Type, name string, val reflect.Value) TypeMap
 
 func (i *injector) Get(t reflect.Type, name string) reflect.Value {
 	val := i.get(t, name)
-
 	if val.IsValid() {
 		return val
 	}
@@ -232,7 +231,6 @@ func (i *injector) Get(t reflect.Type, name string) reflect.Value {
 	}
 
 	return val
-
 }
 
 func (i *injector) SetParent(parent Injector) {

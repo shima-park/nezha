@@ -10,17 +10,32 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
-var _ component.Component = &Client{}
+var (
+	factory       component.Factory   = NewFactory()
+	_             component.Component = &Client{}
+	defaultConfig                     = Config{
+		Name: "MyES",
+		Addr: "127.0.0.1:9200",
+	}
+	description = "es client factory"
+)
 
 func init() {
-	if err := component.Register("es_client", func(config string) (component.Component, error) {
-		return NewClient(config)
-	}); err != nil {
+	if err := component.Register("es_client", factory); err != nil {
 		panic(err)
 	}
 }
 
-type ClientConfig struct {
+func NewFactory() component.Factory {
+	return component.NewFactory(
+		defaultConfig,
+		description,
+		func(c string) (component.Component, error) {
+			return NewClient(c)
+		})
+}
+
+type Config struct {
 	Name string `yaml:"name"`
 	Addr string `yaml:"addr"`
 }
@@ -31,7 +46,7 @@ type Client struct {
 }
 
 func NewClient(rawConfig string) (*Client, error) {
-	var conf ClientConfig
+	conf := defaultConfig
 	err := config.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
@@ -58,21 +73,6 @@ func NewClient(rawConfig string) (*Client, error) {
 			c,
 		),
 	}, nil
-}
-
-func (c *Client) SampleConfig() string {
-	conf := ClientConfig{
-		Name: "MyES",
-		Addr: "127.0.0.1:9200",
-	}
-
-	b, _ := config.Marshal(&conf)
-
-	return string(b)
-}
-
-func (c *Client) Description() string {
-	return "es client factory"
 }
 
 func (c *Client) Instance() component.Instance {

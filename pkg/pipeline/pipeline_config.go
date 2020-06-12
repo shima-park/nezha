@@ -1,38 +1,37 @@
 package pipeline
 
 import (
+	"github.com/shima-park/nezha/pkg/common/config"
 	"github.com/shima-park/nezha/pkg/component"
 	"github.com/shima-park/nezha/pkg/processor"
 )
 
 type Config struct {
 	Name       string              `yaml:"name"`
+	Schedule   string              `yaml:"schedule"`   // 调度计划，为空时死循环调度，可以传入cron表达式调度
+	Bootstrap  bool                `yaml:"bootstrap"`  // 随进程启动而启动
 	Components []map[string]string `yaml:"components"` // key: name, value: rawConfig
 	Processors []map[string]string `yaml:"processors"` // key: name, value: rawConfig
-	Pipeline   PipelineConfig      `yaml:"pipeline"`
+	Stream     StreamConfig        `yaml:"stream"`     // key: name, value: StreamConfig
 }
 
-type PipelineConfig struct {
-	Schedule string        `yaml:"schedule"`
-	Stream   *StreamConfig `yaml:"stream"` // key: name, value: StreamConfig
-}
-
-func (c *Config) NewComponents() ([]NamedComponent, error) {
-	var components []NamedComponent
+func (c Config) NewComponents() ([]Component, error) {
+	var components []Component
 	for _, name2config := range c.Components {
 		for componentName, rawConfig := range name2config {
 			factory, err := component.GetFactory(componentName)
 			if err != nil {
 				return nil, err
 			}
-			c, err := factory(rawConfig)
+			c, err := factory.New(rawConfig)
 			if err != nil {
 				return nil, err
 			}
-			components = append(components, NamedComponent{
+			components = append(components, Component{
 				Name:      componentName,
 				RawConfig: rawConfig,
 				Component: c,
+				Factory:   factory,
 			})
 		}
 	}
@@ -40,8 +39,8 @@ func (c *Config) NewComponents() ([]NamedComponent, error) {
 	return components, nil
 }
 
-func (c *Config) NewProcessors() ([]NamedProcessor, error) {
-	var processors []NamedProcessor
+func (c Config) NewProcessors() ([]Processor, error) {
+	var processors []Processor
 	for _, name2config := range c.Processors {
 		for processorName, rawConfig := range name2config {
 			factory, err := processor.GetFactory(processorName)
@@ -49,11 +48,11 @@ func (c *Config) NewProcessors() ([]NamedProcessor, error) {
 				return nil, err
 			}
 
-			p, err := factory(rawConfig)
+			p, err := factory.New(rawConfig)
 			if err != nil {
 				return nil, err
 			}
-			processors = append(processors, NamedProcessor{
+			processors = append(processors, Processor{
 				Name:      processorName,
 				RawConfig: rawConfig,
 				Processor: p,
@@ -61,4 +60,8 @@ func (c *Config) NewProcessors() ([]NamedProcessor, error) {
 		}
 	}
 	return processors, nil
+}
+
+func (c Config) Marshal() ([]byte, error) {
+	return config.Marshal(c)
 }

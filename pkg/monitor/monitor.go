@@ -3,11 +3,32 @@ package monitor
 import (
 	"expvar"
 	"sync"
+	"time"
 )
 
 type Var = expvar.Var
 
 type KeyValue = expvar.KeyValue
+
+type Elapsed time.Duration
+
+func (e Elapsed) String() string {
+	d := time.Duration(e)
+	d = d.Truncate(time.Second)
+	return d.String()
+}
+
+type Time time.Time
+
+func (t Time) String() string {
+	return time.Time(t).Format("2006-01-02 15:04:05")
+}
+
+type String string
+
+func (s String) String() string {
+	return string(s)
+}
 
 type Monitor interface {
 	With(namespace string) Monitor
@@ -81,7 +102,10 @@ func (m *monitor) Do(f func(namespace string, kv KeyValue)) {
 func (m *monitor) Get(key string) Var {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
-	return m.m[m.namespace].Get(key)
+	if v := m.m[m.namespace].Get(key); v != nil {
+		return v
+	}
+	return String("")
 }
 
 func (m *monitor) Set(key string, av Var) {

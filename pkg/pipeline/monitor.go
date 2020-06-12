@@ -1,9 +1,5 @@
 package pipeline
 
-import (
-	"time"
-)
-
 const (
 	METRICS_KEY_PIPELINE_UPTIME          = "_pipeline_uptime"
 	METRICS_KEY_PIPELINE_STATE           = "_pipeline_state"
@@ -26,23 +22,3 @@ const (
 	METRICS_KEY_STREAM_ERROR_COUNT     = "_stream_error_count"
 	METRICS_KEY_STREAM_ELAPSED         = "_stream_elapsed"
 )
-
-type Elapsed time.Duration
-
-func (e Elapsed) String() string {
-	d := time.Duration(e)
-	d = d.Truncate(time.Second)
-	return d.String()
-}
-
-type Time time.Time
-
-func (t Time) String() string {
-	return time.Time(t).Format("2006-01-02 15:04:05")
-}
-
-type String string
-
-func (s String) String() string {
-	return string(s)
-}

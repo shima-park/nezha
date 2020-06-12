@@ -10,17 +10,35 @@ import (
 	"github.com/go-redis/redis"
 )
 
-var _ component.Component = &Client{}
+var (
+	factory       component.Factory   = NewFactory()
+	_             component.Component = &Client{}
+	defaultConfig                     = Config{
+		Name:     "MyRedisClient",
+		Addr:     "127.0.0.1:18000",
+		Password: "",
+		DB:       0,
+		PoolSize: 5,
+	}
+	description = "redis client factory"
+)
 
 func init() {
-	if err := component.Register("redis_client", func(config string) (component.Component, error) {
-		return NewClient(config)
-	}); err != nil {
+	if err := component.Register("redis_client", factory); err != nil {
 		panic(err)
 	}
 }
 
-type ClientConfig struct {
+func NewFactory() component.Factory {
+	return component.NewFactory(
+		defaultConfig,
+		description,
+		func(c string) (component.Component, error) {
+			return NewClient(c)
+		})
+}
+
+type Config struct {
 	Name     string `yaml:"name"`
 	Addr     string `yaml:"addr"`
 	Password string `yaml:"password"`
@@ -34,13 +52,13 @@ type Client struct {
 }
 
 func NewClient(rawConfig string) (*Client, error) {
-	var conf ClientConfig
+	var conf Config
 	err := config.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Info("Pika config: %+v", conf)
+	log.Info("Redis config: %+v", conf)
 
 	c := redis.NewClient(&redis.Options{
 		Addr:     conf.Addr,
@@ -58,24 +76,6 @@ func NewClient(rawConfig string) (*Client, error) {
 			c,
 		),
 	}, nil
-}
-
-func (c *Client) SampleConfig() string {
-	conf := ClientConfig{
-		Name:     "MyRedisClient",
-		Addr:     "127.0.0.1:18000",
-		Password: "",
-		DB:       0,
-		PoolSize: 5,
-	}
-
-	b, _ := config.Marshal(&conf)
-
-	return string(b)
-}
-
-func (c *Client) Description() string {
-	return "pika client factory"
 }
 
 func (c *Client) Instance() component.Instance {

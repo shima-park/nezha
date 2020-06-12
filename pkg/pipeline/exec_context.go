@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/shima-park/nezha/pkg/common/log"
 	"github.com/shima-park/nezha/pkg/inject"
 	"github.com/shima-park/nezha/pkg/monitor"
-	"github.com/pkg/errors"
 )
 
 type execContext struct {
@@ -100,16 +100,16 @@ func (c *execContext) runStream(s *Stream, inputC, outputC chan inject.Injector,
 	go func() {
 		defer s.Recover(func() {
 			moni.Add(METRICS_KEY_STREAM_RUNNING, -1)
-			moni.Set(METRICS_KEY_STREAM_EXIT_TIME, Time(time.Now()))
+			moni.Set(METRICS_KEY_STREAM_EXIT_TIME, monitor.Time(time.Now()))
 			closeFunc()
 			c.wg.Done()
 		})
 
-		moni.Set(METRICS_KEY_STREAM_START_TIME, Time(time.Now()))
+		moni.Set(METRICS_KEY_STREAM_START_TIME, monitor.Time(time.Now()))
 		moni.Add(METRICS_KEY_STREAM_RUNNING, 1)
 		var elapsed time.Duration
 		for inj := range inputC {
-			moni.Set(METRICS_KEY_STREAM_LAST_START_TIME, Time(time.Now()))
+			moni.Set(METRICS_KEY_STREAM_LAST_START_TIME, monitor.Time(time.Now()))
 			moni.Add(METRICS_KEY_STREAM_RUN_TIMES, 1)
 			inj.MapTo(moni, "Monitor", (*monitor.Monitor)(nil))
 			startTime := time.Now()
@@ -117,8 +117,8 @@ func (c *execContext) runStream(s *Stream, inputC, outputC chan inject.Injector,
 			val, err := s.Invoke(inj)
 
 			elapsed += time.Since(startTime).Truncate(time.Millisecond)
-			moni.Set(METRICS_KEY_STREAM_ELAPSED, Elapsed(elapsed))
-			moni.Set(METRICS_KEY_STREAM_LAST_END_TIME, Time(time.Now()))
+			moni.Set(METRICS_KEY_STREAM_ELAPSED, monitor.Elapsed(elapsed))
+			moni.Set(METRICS_KEY_STREAM_LAST_END_TIME, monitor.Time(time.Now()))
 
 			newInj, err := handleResult(s.Name(), inj, val, err)
 			if err != nil {

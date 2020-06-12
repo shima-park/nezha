@@ -18,3 +18,11 @@ func Unmarshal(in []byte, v interface{}) error {
 func Marshal(in interface{}) ([]byte, error) {
 	return DefaultMarshal(in)
 }
+
+func MustMarshal(v interface{}) string {
+	b, err := Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
+}

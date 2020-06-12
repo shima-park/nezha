@@ -2,15 +2,24 @@ package component
 
 import (
 	"fmt"
-	"github.com/shima-park/nezha/pkg/common/log"
 )
 
-type Factory = func(config string) (Component, error)
+type Factory interface {
+	// 组件示例配置
+	SampleConfig() string
+
+	// 组件描述
+	Description() string
+
+	// 创建实例
+	New(config string) (Component, error)
+}
+
+type FactoryFunc func(config string) (Component, error)
 
 var registry = make(map[string]Factory)
 
 func Register(name string, factory Factory) error {
-	log.Info("Registering component factory: %s", name)
 	if name == "" {
 		return fmt.Errorf("Error registering component: name cannot be empty")
 	}
@@ -22,7 +31,6 @@ func Register(name string, factory Factory) error {
 	}
 
 	registry[name] = factory
-	log.Info("Successfully registered component: %s", name)
 
 	return nil
 }
@@ -32,4 +40,20 @@ func GetFactory(name string) (Factory, error) {
 		return nil, fmt.Errorf("Error creating component. No such component type exist: '%v'", name)
 	}
 	return registry[name], nil
+}
+
+type NamedFactory struct {
+	Name    string
+	Factory Factory
+}
+
+func ListFactory() []NamedFactory {
+	var list []NamedFactory
+	for name, factory := range registry {
+		list = append(list, NamedFactory{
+			Name:    name,
+			Factory: factory,
+		})
+	}
+	return list
 }

@@ -13,14 +13,29 @@ import (
 	"github.com/shima-park/nezha/pkg/inject"
 )
 
-var _ component.Component = &Reader{}
+var (
+	readerFactory       component.Factory   = NewReaderFactory()
+	_                   component.Component = &Reader{}
+	defaultReaderConfig                     = ReaderConfig{
+		Name: "MyReader",
+		Path: "stdin",
+	}
+	readerDescription = "file reader e.g.: stdin, stdout, stderr, /var/log/xxx.log"
+)
 
 func init() {
-	if err := component.Register("io_reader", func(config string) (component.Component, error) {
-		return NewReader(config)
-	}); err != nil {
+	if err := component.Register("io_reader", readerFactory); err != nil {
 		panic(err)
 	}
+}
+
+func NewReaderFactory() component.Factory {
+	return component.NewFactory(
+		defaultReaderConfig,
+		readerDescription,
+		func(c string) (component.Component, error) {
+			return NewReader(c)
+		})
 }
 
 type ReaderConfig struct {
@@ -34,7 +49,7 @@ type Reader struct {
 }
 
 func NewReader(rawConfig string) (*Reader, error) {
-	var conf ReaderConfig
+	conf := defaultReaderConfig
 	err := config.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
@@ -65,20 +80,6 @@ func NewReader(rawConfig string) (*Reader, error) {
 			f,
 		),
 	}, nil
-}
-
-func (r *Reader) SampleConfig() string {
-	conf := &ReaderConfig{
-		Path: "stdin",
-	}
-
-	b, _ := config.Marshal(conf)
-
-	return string(b)
-}
-
-func (r *Reader) Description() string {
-	return "file reader e.g.: stdin, stdout, stderr, /var/log/xxx.log"
 }
 
 func (r *Reader) Instance() component.Instance {

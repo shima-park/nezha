@@ -11,14 +11,29 @@ import (
 	"github.com/shima-park/nezha/pkg/inject"
 )
 
-var _ component.Component = &Producer{}
+var (
+	producerFactory       component.Factory   = NewProducerFactory()
+	_                     component.Component = &Producer{}
+	defaultProducerConfig                     = ProducerConfig{
+		Name:  "MyKafkaProducer",
+		Addrs: []string{"localhost:9092"},
+	}
+	producerDescription = "kafka producer factory"
+)
 
 func init() {
-	if err := component.Register("kafka_producer", func(config string) (component.Component, error) {
-		return NewProducer(config)
-	}); err != nil {
+	if err := component.Register("kafka_producer", producerFactory); err != nil {
 		panic(err)
 	}
+}
+
+func NewProducerFactory() component.Factory {
+	return component.NewFactory(
+		defaultProducerConfig,
+		producerDescription,
+		func(c string) (component.Component, error) {
+			return NewProducer(c)
+		})
 }
 
 type ProducerConfig struct {
@@ -33,7 +48,7 @@ type Producer struct {
 }
 
 func NewProducer(rawConfig string) (*Producer, error) {
-	var conf ProducerConfig
+	conf := defaultProducerConfig
 	err := config.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
@@ -56,21 +71,6 @@ func NewProducer(rawConfig string) (*Producer, error) {
 			producer,
 		),
 	}, nil
-}
-
-func (c *Producer) SampleConfig() string {
-	conf := ProducerConfig{
-		Name:  "MyKafkaProducer",
-		Addrs: []string{"localhost:9092"},
-	}
-
-	b, _ := config.Marshal(&conf)
-	return string(b)
-}
-
-// Description returns a one-sentence description on the Input
-func (c *Producer) Description() string {
-	return "kafka producer factory"
 }
 
 func (c *Producer) Instance() component.Instance {

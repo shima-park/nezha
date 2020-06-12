@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/pkg/errors"
 	"github.com/shima-park/nezha/pkg/inject"
 	"github.com/shima-park/nezha/pkg/processor"
-	"github.com/pkg/errors"
 )
 
 var errorInterface = reflect.TypeOf((*error)(nil)).Elem()
@@ -18,7 +18,8 @@ type MissingDependencyError struct {
 }
 
 func (e MissingDependencyError) Error() string {
-	return fmt.Sprintf("Value not found for field: %v, type: %v, name: %v", e.Field, e.ReflectType, e.InjectName)
+	return fmt.Sprintf("Value not found for field: %v, type: %v, name: %v",
+		e.Field, e.ReflectType, e.InjectName)
 }
 
 func check(s *Stream, inj inject.Injector) []error {
@@ -32,13 +33,17 @@ func check(s *Stream, inj inject.Injector) []error {
 		return errs
 	}
 
-	if err := checkDep(inj, s.processor.Processor); err != nil {
-		errs = append(errs, err...)
+	if err2 := checkDep(inj, s.processor.Processor); err2 != nil {
+		for _, err := range err2 {
+			errs = append(errs, errors.Wrapf(err, "Stream(%s)", s.Name()))
+		}
 	}
 
 	for i := 0; i < len(s.childs); i++ {
-		if err := check(s.childs[i], inj); err != nil {
-			errs = append(errs, err...)
+		if err2 := check(s.childs[i], inj); err2 != nil {
+			for _, err := range err2 {
+				errs = append(errs, errors.Wrapf(err, "Stream(%s)", s.Name()))
+			}
 		}
 	}
 	return errs

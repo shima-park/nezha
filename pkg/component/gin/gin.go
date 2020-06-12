@@ -13,32 +13,48 @@ import (
 	"github.com/shima-park/nezha/pkg/component"
 )
 
-var _ component.Component = &Gin{}
-var defaultGracefulStopTimeout = time.Second * 30
+var (
+	factory                    component.Factory   = NewFactory()
+	_                          component.Component = &Gin{}
+	defaultGracefulStopTimeout                     = time.Second * 30
+	defaultConfig                                  = Config{
+		Name:                "GinServer",
+		Addr:                ":8080",
+		GracefulStopTimeout: defaultGracefulStopTimeout,
+	}
+	description = "http listen factory"
+)
 
 func init() {
-	if err := component.Register("gin_server", func(config string) (component.Component, error) {
-		return NewGin(config)
-	}); err != nil {
+	if err := component.Register("gin_server", factory); err != nil {
 		panic(err)
 	}
 }
 
-type GinConfig struct {
+func NewFactory() component.Factory {
+	return component.NewFactory(
+		defaultConfig,
+		description,
+		func(c string) (component.Component, error) {
+			return NewGin(c)
+		})
+}
+
+type Config struct {
 	Name                string        `yaml:"name"`
 	Addr                string        `yaml:"addr"`
 	GracefulStopTimeout time.Duration `yaml:"graceful_stop_timeout"`
 }
 
 type Gin struct {
-	conf     GinConfig
+	conf     Config
 	srv      *http.Server
 	gin      *gin.Engine
 	instance component.Instance
 }
 
 func NewGin(rawConfig string) (*Gin, error) {
-	var conf GinConfig
+	conf := defaultConfig
 	err := config.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
@@ -74,22 +90,6 @@ func NewGin(rawConfig string) (*Gin, error) {
 			g,
 		),
 	}, nil
-}
-
-func (g *Gin) SampleConfig() string {
-	conf := GinConfig{
-		Name:                "GinServer",
-		Addr:                ":8080",
-		GracefulStopTimeout: defaultGracefulStopTimeout,
-	}
-
-	b, _ := config.Marshal(&conf)
-
-	return string(b)
-}
-
-func (g *Gin) Description() string {
-	return "http listen factory"
 }
 
 func (g *Gin) Instance() component.Instance {

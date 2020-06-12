@@ -14,14 +14,29 @@ import (
 	"github.com/shima-park/nezha/pkg/inject"
 )
 
-var _ component.Component = &Reader{}
+var (
+	writerFactory       component.Factory   = NewWriterFactory()
+	_                   component.Component = &Writer{}
+	defaultWriterConfig                     = ReaderConfig{
+		Name: "MyWriter",
+		Path: "stdout",
+	}
+	writerDescription = "file writer e.g.: stdout, stderr, /dev/null, /var/log/xxx.log"
+)
 
 func init() {
-	if err := component.Register("io_writer", func(config string) (component.Component, error) {
-		return NewWriter(config)
-	}); err != nil {
+	if err := component.Register("io_writer", writerFactory); err != nil {
 		panic(err)
 	}
+}
+
+func NewWriterFactory() component.Factory {
+	return component.NewFactory(
+		defaultWriterConfig,
+		writerDescription,
+		func(c string) (component.Component, error) {
+			return NewWriter(c)
+		})
 }
 
 type WriterConfig struct {
@@ -45,7 +60,7 @@ func NopCloser(w io.Writer) io.WriteCloser {
 }
 
 func NewWriter(rawConfig string) (*Writer, error) {
-	var conf WriterConfig
+	conf := defaultWriterConfig
 	err := config.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
@@ -76,20 +91,6 @@ func NewWriter(rawConfig string) (*Writer, error) {
 			f,
 		),
 	}, nil
-}
-
-func (w *Writer) SampleConfig() string {
-	conf := &ReaderConfig{
-		Path: "stdout",
-	}
-
-	b, _ := config.Marshal(conf)
-
-	return string(b)
-}
-
-func (w *Writer) Description() string {
-	return "file writer e.g.: stdout, stderr, /dev/null, /var/log/xxx.log"
 }
 
 func (w *Writer) Instance() component.Instance {

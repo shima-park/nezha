@@ -3,8 +3,8 @@ package pipeline
 import (
 	"reflect"
 
-	"github.com/shima-park/inject"
 	"github.com/shima-park/nezha/pkg/common/log"
+	"github.com/shima-park/nezha/pkg/inject"
 )
 
 type loggerInjector struct {

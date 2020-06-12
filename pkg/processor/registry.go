@@ -2,16 +2,24 @@ package processor
 
 import (
 	"fmt"
-
-	"github.com/shima-park/nezha/pkg/common/log"
 )
 
-type Factory = func(config string) (Processor, error)
+type Factory interface {
+	// 组件示例配置
+	SampleConfig() string
+
+	// 组件描述
+	Description() string
+
+	// 创建实例
+	New(config string) (Processor, error)
+}
+
+type FactoryFunc func(config string) (Processor, error)
 
 var registry = make(map[string]Factory)
 
 func Register(name string, factory Factory) error {
-	log.Info("Registering processor factory: %s", name)
 	if name == "" {
 		return fmt.Errorf("Error registering processor: name cannot be empty")
 	}
@@ -23,38 +31,29 @@ func Register(name string, factory Factory) error {
 	}
 
 	registry[name] = factory
-	log.Info("Successfully registered processor: %s", name)
 
 	return nil
 }
 
-func RegisterProcessor(name string, processor Processor) error {
-	return Register(name, func(string) (Processor, error) {
-		return processor, nil
-	})
-}
-
 func GetFactory(name string) (Factory, error) {
 	if _, exists := registry[name]; !exists {
-		return nil, fmt.Errorf("Error creating processor. No such processor type exist: '%v'", name)
+		return nil, fmt.Errorf("No such processor type exist: '%v'", name)
 	}
 	return registry[name], nil
 }
 
-func New(name string, config string) (Processor, error) {
-	f, err := GetFactory(name)
-	if err != nil {
-		return nil, err
-	}
+type NamedFactory struct {
+	Name    string
+	Factory Factory
+}
 
-	h, err := f(config)
-	if err != nil {
-		return nil, err
+func ListFactory() []NamedFactory {
+	var list []NamedFactory
+	for name, factory := range registry {
+		list = append(list, NamedFactory{
+			Name:    name,
+			Factory: factory,
+		})
 	}
-
-	err = Validate(h)
-	if err != nil {
-		return nil, err
-	}
-	return h, nil
+	return list
 }
