@@ -2,13 +2,12 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 
-	"github.com/shima-park/nezha/pkg/common/plugin"
-	_ "github.com/shima-park/nezha/pkg/component/include"
-	"github.com/shima-park/nezha/pkg/pipeline"
+	"github.com/shima-park/nezha/common/plugin"
+	_ "github.com/shima-park/nezha/component/include"
+	"github.com/shima-park/nezha/pipeline"
 )
 
 func main() {
@@ -28,16 +27,14 @@ path: stdin`},
 name: Stdout
 path: stdout`},
 		},
-		Pipeline: pipeline.PipelineConfig{
-			Stream: &pipeline.StreamConfig{
-				Name: "read_line_from_stdin",
-				Childs: []pipeline.StreamConfig{
-					pipeline.StreamConfig{
-						Name: "jsondecode_str_2_foo",
-						Childs: []pipeline.StreamConfig{
-							pipeline.StreamConfig{
-								Name: "write_foo_2_stdout",
-							},
+		Stream: pipeline.StreamConfig{
+			Name: "read_line_from_stdin",
+			Childs: []pipeline.StreamConfig{
+				pipeline.StreamConfig{
+					Name: "jsondecode_str_2_foo",
+					Childs: []pipeline.StreamConfig{
+						pipeline.StreamConfig{
+							Name: "write_foo_2_stdout",
 						},
 					},
 				},
@@ -50,10 +47,7 @@ path: stdout`},
 		panic(err)
 	}
 
-	fmt.Println("Components:")
-	pipeline.PrintPipelineComponents(os.Stdout, c)
-	fmt.Println("Processor:")
-	pipeline.PrintPipelineProcessor(os.Stdout, c)
+	c.Visualize(os.Stdout, "ascii_table")
 
 	if errs := c.CheckDependence(); len(errs) > 0 {
 		panic(errs[0])

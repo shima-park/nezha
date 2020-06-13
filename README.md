@@ -29,7 +29,7 @@
 
 
 #### Step 1 准备流程中需要的component资源
-component的实现可以参考 github.com/shima-park/nezha/pkg/component/{es, kafka}下相关实现。只考虑如何实现业务Processor的编写
+component的实现可以参考 github.com/shima-park/nezha/component/{es, kafka}下相关实现。只考虑如何实现业务Processor的编写
 
 已知的通过上述component可以获得以下对象，并已注入容器
 ```
