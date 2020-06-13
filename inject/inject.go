@@ -217,7 +217,6 @@ func (i *injector) Get(t reflect.Type, name string) reflect.Value {
 			for n, v := range m {
 				if n == name && k.Implements(t) {
 					val = v
-					i.lock.RUnlock()
 					break
 				}
 			}

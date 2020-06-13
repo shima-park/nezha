@@ -47,7 +47,10 @@ path: stdout`},
 		panic(err)
 	}
 
-	c.Visualize(os.Stdout, "ascii_table")
+	err = c.Visualize(os.Stdout, "ascii_table")
+	if err != nil {
+		panic(err)
+	}
 
 	if errs := c.CheckDependence(); len(errs) > 0 {
 		panic(errs[0])

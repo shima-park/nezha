@@ -1,6 +1,10 @@
 package gin
 
-import "testing"
+import (
+	"testing"
+
+	"gotest.tools/assert"
+)
 
 func TestGin(t *testing.T) {
 	g, err := NewGin(`
@@ -11,6 +15,8 @@ func TestGin(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	g.Start()
-	select {}
+	err = g.Start()
+	assert.NilError(t, err)
+	err = g.Stop()
+	assert.NilError(t, err)
 }

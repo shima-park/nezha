@@ -19,11 +19,11 @@ var (
 		"dot":         DotGrgphVisualizer,
 		"ascii_table": AsciiTableVisualizer,
 	}
-	supportedVisualizerTypes = []string{}
+	supportedVisualizerTypes []string
 )
 
 func init() {
-	for t, _ := range visualizers {
+	for t := range visualizers {
 		supportedVisualizerTypes = append(supportedVisualizerTypes, t)
 	}
 }
@@ -134,7 +134,7 @@ func buildRefRalationship(c StreamConfig, w io.Writer) {
 	}
 
 	for _, x := range c.Childs {
-		w.Write([]byte(fmt.Sprintf("  %s %s %s;\n", c.Name, "->", x.Name)))
+		_, _ = w.Write([]byte(fmt.Sprintf("  %s %s %s;\n", c.Name, "->", x.Name)))
 		buildRefRalationship(x, w)
 	}
 }
@@ -161,7 +161,6 @@ func printPipelineComponents(w io.Writer, p Pipeliner) {
 
 	}
 	table.Render()
-	return
 }
 
 func printPipelineProcessors(w io.Writer, p Pipeliner) {

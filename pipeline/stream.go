@@ -143,16 +143,6 @@ func (f *Stream) Delete(name string) error {
 	return nil
 }
 
-func (f *Stream) findChild(name string) (*Stream, int, bool) {
-	for i := 0; i < len(f.childs); i++ {
-		c := f.childs[i]
-		if c.Name() == name {
-			return c, i, true
-		}
-	}
-	return nil, 0, false
-}
-
 func (f *Stream) Get(name string) (*Stream, bool) {
 	f.rwlock.RLock()
 	defer f.rwlock.RUnlock()

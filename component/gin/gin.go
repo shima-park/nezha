@@ -49,7 +49,6 @@ type Config struct {
 type Gin struct {
 	conf     Config
 	srv      *http.Server
-	gin      *gin.Engine
 	instance component.Instance
 }
 
@@ -111,8 +110,6 @@ func (g *Gin) Start() error {
 	case <-time.After(time.Second):
 		return nil
 	}
-
-	return nil
 }
 
 func (g *Gin) Stop() error {

@@ -1,4 +1,4 @@
-package inject_test
+package inject
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type SpecialString interface {
 
 type TestStruct struct {
 	Dep1 string        `inject:"t" json:"-"`
-	Dep2 SpecialString `inject`
+	Dep2 SpecialString `inject:""`
 	Dep3 string
 }
 
@@ -38,10 +38,10 @@ func refute(t *testing.T, a interface{}, b interface{}) {
 }
 
 type InvokeStruct struct {
-	D1 string                `inject`
-	D2 SpecialString         `inject`
-	D3 <-chan *SpecialString `inject`
-	D4 chan<- *SpecialString `inject`
+	D1 string                `inject:""`
+	D2 SpecialString         `inject:""`
+	D3 <-chan *SpecialString `inject:""`
+	D4 chan<- *SpecialString `inject:""`
 }
 
 func Test_InjectorInvoke(t *testing.T) {
@@ -74,7 +74,7 @@ func Test_InjectorInvoke(t *testing.T) {
 }
 
 type InvokeStruct2 struct {
-	D1 string `inject`
+	D1 string `inject:""`
 	D2 string `inject:"D1"`
 }
 
@@ -96,6 +96,11 @@ func Test_InjectorTag(t *testing.T) {
 	expect(t, err, nil)
 }
 
+type InvokeStruct3 struct {
+	D1 string        `inject:""`
+	D2 SpecialString `inject:""`
+}
+
 func Test_InjectorInvokeReturnValues(t *testing.T) {
 	injector := New()
 	expect(t, injector == nil, false)
@@ -105,12 +110,13 @@ func Test_InjectorInvokeReturnValues(t *testing.T) {
 	dep2 := "another dep"
 	injector.MapTo(dep2, "D2", (*SpecialString)(nil))
 
-	result, err := injector.Invoke(func(i *InvokeStruct) string {
+	result, err := injector.Invoke(func(i *InvokeStruct3) string {
 		expect(t, i.D1, dep)
 		expect(t, i.D2, dep2)
 		return "Hello world"
 	})
 
+	expect(t, len(result), 1)
 	expect(t, result[0].String(), "Hello world")
 	expect(t, err, nil)
 }
@@ -142,6 +148,7 @@ func Test_InterfaceOf(t *testing.T) {
 		refute(t, rec, nil)
 	}()
 	iType = InterfaceOf((*testing.T)(nil))
+	_ = iType
 }
 
 func Test_InjectorSet(t *testing.T) {
