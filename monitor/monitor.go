@@ -6,6 +6,22 @@ import (
 	"time"
 )
 
+var globalLock sync.Mutex
+var globalMap = map[string]*expvar.Map{}
+
+func loadOrStore(namespace string) *expvar.Map {
+	globalLock.Lock()
+	defer globalLock.Unlock()
+
+	m, ok := globalMap[namespace]
+	if !ok {
+		m = expvar.NewMap(namespace)
+		globalMap[namespace] = m
+	}
+	m.Init() // clean old data
+	return m
+}
+
 type Var = expvar.Var
 
 type KeyValue = expvar.KeyValue
@@ -52,7 +68,7 @@ func NewMonitor(namespace string) Monitor {
 		namespace: namespace,
 		lock:      &sync.RWMutex{},
 		m: map[string]*expvar.Map{
-			namespace: expvar.NewMap(namespace),
+			namespace: loadOrStore(namespace),
 		},
 	}
 }
@@ -60,7 +76,7 @@ func NewMonitor(namespace string) Monitor {
 func (m *monitor) With(namespace string) Monitor {
 	m.lock.Lock()
 	if _, ok := m.m[namespace]; !ok {
-		m.m[namespace] = expvar.NewMap(namespace)
+		m.m[namespace] = loadOrStore(namespace)
 	}
 	m.lock.Unlock()
 

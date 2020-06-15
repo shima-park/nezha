@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -13,9 +14,11 @@ import (
 )
 
 type PipelinerManager interface {
-	AddPipeline(config Config) error
+	AddPipeline(config Config) (Pipeliner, error)
+	RemovePipeline(name ...string) error
 	List() []Pipeliner
 	Find(name string) Pipeliner
+	Restart(name ...string) error
 	Start(name ...string) error
 	Stop(name ...string) error
 }
@@ -72,7 +75,7 @@ func loadPipelineFromFile(path string, pm PipelinerManager) error {
 			return err
 		}
 
-		err = pm.AddPipeline(conf)
+		_, err = pm.AddPipeline(conf)
 		if err != nil {
 			return err
 		}
@@ -109,15 +112,62 @@ func (p *pipelinerManager) Find(name string) Pipeliner {
 	return nil
 }
 
-func (p *pipelinerManager) AddPipeline(config Config) error {
+func (p *pipelinerManager) AddPipeline(config Config) (Pipeliner, error) {
 	pipe, err := NewPipelineByConfig(config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	p.rwlock.Lock()
 	p.pipelines[pipe.Name()] = pipe
 	p.rwlock.Unlock()
+	return pipe, nil
+}
+
+func (p *pipelinerManager) RemovePipeline(names ...string) error {
+	p.rwlock.Lock()
+	defer p.rwlock.Unlock()
+	for _, name := range names {
+		pipe, ok := p.pipelines[name]
+		if ok {
+			pipe.Stop()
+			delete(p.pipelines, pipe.Name())
+		}
+	}
+	return nil
+}
+
+func (p *pipelinerManager) Restart(names ...string) error {
+	var configs []Config
+	p.rwlock.Lock()
+	for _, name := range names {
+		pipe, ok := p.pipelines[name]
+		if ok {
+			conf := pipe.GetConfig()
+			configs = append(configs, conf)
+			pipe.Stop()
+			delete(p.pipelines, pipe.Name())
+		}
+	}
+	p.rwlock.Unlock()
+
+	var errs []string
+	for _, config := range configs {
+		pipe, err := p.AddPipeline(config)
+		if err != nil {
+			errs = append(errs, errors.Wrap(err, config.Name).Error())
+		}
+
+		err = pipe.Start()
+		if err != nil {
+			errs = append(errs, errors.Wrap(err, config.Name).Error())
+		}
+	}
+
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, ""))
+	}
+
 	return nil
 }
 
