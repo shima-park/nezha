@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -102,65 +103,104 @@ func (p *pipelinerManager) List() []Pipeliner {
 
 func (p *pipelinerManager) Find(name string) Pipeliner {
 	p.rwlock.Lock()
-	pipe, ok := p.pipelines[name]
-	if ok {
-		p.rwlock.Unlock()
-		return pipe
-	}
-	p.rwlock.Unlock()
+	defer p.rwlock.Unlock()
 
-	return nil
+	return p.find(name)
+}
+
+func (p *pipelinerManager) find(name string) Pipeliner {
+	return p.pipelines[name]
 }
 
 func (p *pipelinerManager) AddPipeline(config Config) (Pipeliner, error) {
+	p.rwlock.Lock()
+	defer p.rwlock.Unlock()
+
+	return p.addPipeline(config)
+}
+
+func (p *pipelinerManager) addPipeline(config Config) (Pipeliner, error) {
+	_, ok := p.pipelines[config.Name]
+	if ok {
+		return nil, fmt.Errorf("Pipeline: %s is already register", config.Name)
+	}
+
 	pipe, err := NewPipelineByConfig(config)
 	if err != nil {
 		return nil, err
 	}
-
-	p.rwlock.Lock()
-	p.pipelines[pipe.Name()] = pipe
-	p.rwlock.Unlock()
+	p.pipelines[config.Name] = pipe
 	return pipe, nil
 }
 
 func (p *pipelinerManager) RemovePipeline(names ...string) error {
-	p.rwlock.Lock()
-	defer p.rwlock.Unlock()
-	for _, name := range names {
-		pipe, ok := p.pipelines[name]
-		if ok {
-			pipe.Stop()
-			delete(p.pipelines, pipe.Name())
-		}
-	}
+	return p.doByName(false, names, p.removePipeline)
+}
+
+func (p *pipelinerManager) removePipeline(pipe Pipeliner) error {
+	pipe.Stop()
+	delete(p.pipelines, pipe.Name())
 	return nil
 }
 
 func (p *pipelinerManager) Restart(names ...string) error {
-	var configs []Config
-	p.rwlock.Lock()
-	for _, name := range names {
-		pipe, ok := p.pipelines[name]
-		if ok {
-			conf := pipe.GetConfig()
-			configs = append(configs, conf)
-			pipe.Stop()
-			delete(p.pipelines, pipe.Name())
-		}
-	}
-	p.rwlock.Unlock()
-
-	var errs []string
-	for _, config := range configs {
-		pipe, err := p.AddPipeline(config)
+	return p.doByName(false, names, func(oldPipe Pipeliner) error {
+		name := oldPipe.Name()
+		err := p.removePipeline(oldPipe)
 		if err != nil {
-			errs = append(errs, errors.Wrap(err, config.Name).Error())
+			return errors.Wrap(err, name)
+		}
+
+		pipe, err := p.addPipeline(oldPipe.GetConfig())
+		if err != nil {
+			return errors.Wrap(err, name)
 		}
 
 		err = pipe.Start()
 		if err != nil {
-			errs = append(errs, errors.Wrap(err, config.Name).Error())
+			return errors.Wrap(err, name)
+		}
+		return nil
+	})
+}
+
+func (p *pipelinerManager) Start(names ...string) error {
+	return p.doByName(true, names, func(pipe Pipeliner) error {
+		if pipe.State() == Exited {
+			return fmt.Errorf("Pipeline(%s)'s state is exited, please try to restart it", pipe.Name())
+		}
+		return pipe.Start()
+	})
+}
+
+func (p *pipelinerManager) Stop(names ...string) error {
+	return p.doByName(true, names, func(pipe Pipeliner) error {
+		pipe.Stop()
+		return nil
+	})
+}
+
+func (p *pipelinerManager) doByName(isReadLock bool, names []string, callback func(pipe Pipeliner) error) error {
+	if isReadLock {
+		p.rwlock.RLock()
+		defer p.rwlock.RUnlock()
+	} else {
+		p.rwlock.Lock()
+		defer p.rwlock.Unlock()
+	}
+
+	var errs []string
+	for _, name := range names {
+		pipe := p.find(name)
+		if pipe == nil {
+			errs = append(errs, fmt.Sprintf("Pipeline: %s is not found", name))
+			continue
+		}
+
+		err := callback(pipe)
+		if err != nil {
+			errs = append(errs, errors.Wrap(err, name).Error())
+			continue
 		}
 	}
 
@@ -168,44 +208,5 @@ func (p *pipelinerManager) Restart(names ...string) error {
 		return errors.New(strings.Join(errs, ""))
 	}
 
-	return nil
-}
-
-func (p *pipelinerManager) Start(names ...string) error {
-	var startFuncs []func() error
-	p.rwlock.RLock()
-	for _, name := range names {
-		pipeline := p.Find(name)
-		if pipeline == nil {
-			return errors.New("Not found pipeline: " + name)
-		}
-		startFuncs = append(startFuncs, pipeline.Start)
-	}
-	p.rwlock.RUnlock()
-
-	for _, start := range startFuncs {
-		err := start()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (p *pipelinerManager) Stop(names ...string) error {
-	var stopFuncs []func()
-	p.rwlock.RLock()
-	for _, name := range names {
-		pipeline := p.Find(name)
-		if pipeline == nil {
-			return errors.New("Not found pipeline: " + name)
-		}
-		stopFuncs = append(stopFuncs, pipeline.Stop)
-	}
-	p.rwlock.RUnlock()
-
-	for _, stop := range stopFuncs {
-		stop()
-	}
 	return nil
 }

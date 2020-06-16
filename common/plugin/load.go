@@ -3,6 +3,7 @@ package plugin
 import (
 	"errors"
 	"flag"
+	"fmt"
 	goplugin "plugin"
 	"strings"
 
@@ -26,8 +27,7 @@ func (p *pluginList) String() string {
 func (p *pluginList) Set(v string) error {
 	for _, path := range p.paths {
 		if path == v {
-			log.Warn("%s is already a registered plugin", path)
-			return nil
+			return fmt.Errorf("%s is already a registered plugin", path)
 		}
 	}
 	p.paths = append(p.paths, v)
