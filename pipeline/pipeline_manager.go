@@ -36,55 +36,6 @@ func NewPipelinerManager() PipelinerManager {
 	return pm
 }
 
-func NewPipelineManagerByConfigs(path string) (PipelinerManager, error) {
-	pm := NewPipelinerManager()
-	return pm, loadPipelineFromFile(path, pm)
-}
-
-func loadPipelineFromFile(path string, pm PipelinerManager) error {
-	log.Info("Read config from: %s", path)
-
-	fi, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-
-	var paths []string
-	if fi.IsDir() {
-		var err error
-		paths, err = filepath.Glob(filepath.Join(path, "*.yaml"))
-		if err != nil {
-			return err
-		}
-
-		if len(paths) == 0 {
-			return errors.New("not match pipeline config")
-		}
-	} else {
-		paths = []string{path}
-	}
-
-	for _, path := range paths {
-		content, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		var conf Config
-		err = config.Unmarshal(content, &conf)
-		if err != nil {
-			return err
-		}
-
-		_, err = pm.AddPipeline(conf)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (p *pipelinerManager) List() []Pipeliner {
 	var ps []Pipeliner
 
@@ -206,6 +157,50 @@ func (p *pipelinerManager) doByName(isReadLock bool, names []string, callback fu
 
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, ""))
+	}
+
+	return nil
+}
+
+func LoadPipelineFromFile(path string, pm PipelinerManager) error {
+	log.Info("Read config from: %s", path)
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	var paths []string
+	if fi.IsDir() {
+		var err error
+		paths, err = filepath.Glob(filepath.Join(path, "*.yaml"))
+		if err != nil {
+			return err
+		}
+
+		if len(paths) == 0 {
+			return errors.New("not match pipeline config")
+		}
+	} else {
+		paths = []string{path}
+	}
+
+	for _, path := range paths {
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		var conf Config
+		err = config.Unmarshal(content, &conf)
+		if err != nil {
+			return err
+		}
+
+		_, err = pm.AddPipeline(conf)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

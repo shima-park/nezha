@@ -41,8 +41,3 @@ func RegisterLoader(name string, l PluginLoader) error {
 	registry[name] = l
 	return nil
 }
-
-func LoadPlugins(path string) error {
-	// TODO: add flag to enable/disable plugins?
-	return loadPlugins(path)
-}

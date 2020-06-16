@@ -5,17 +5,12 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/shima-park/nezha/common/plugin"
 	_ "github.com/shima-park/nezha/component/include"
 	"github.com/shima-park/nezha/pipeline"
 )
 
 func main() {
 	flag.Parse()
-
-	if err := plugin.Initialize(); err != nil {
-		panic(err)
-	}
 
 	pipeConf := pipeline.Config{
 		Name: "test_pipeline",

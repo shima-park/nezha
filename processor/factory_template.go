@@ -23,6 +23,7 @@ func NewFactory(sampleConfig interface{}, description string, factoryFunc Factor
 			conf = config.MustMarshal(sampleConfig)
 		}
 	}
+
 	return FactoryTemplate{
 		sampleConfig: conf,
 		description:  description,
