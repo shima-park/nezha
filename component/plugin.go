@@ -3,7 +3,7 @@ package component
 import (
 	"errors"
 
-	"github.com/shima-park/nezha/plugin"
+	"github.com/shima-park/nezha/common/plugin"
 )
 
 type componentPlugin struct {

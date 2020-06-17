@@ -3,7 +3,7 @@ package pipeline
 import (
 	"reflect"
 
-	"github.com/shima-park/nezha/inject"
+	"github.com/shima-park/nezha/common/inject"
 	"github.com/shima-park/nezha/processor"
 )
 

@@ -3,7 +3,11 @@ package ctrl
 import (
 	"errors"
 	"expvar"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -73,7 +77,38 @@ func (ctrl *Ctrl) addPipeline(c *gin.Context) {
 		return
 	}
 
-	_, err := ctrl.pipelineManager.AddPipeline(conf)
+	name := conf.Name + ".yaml"
+	path := ctrl.metadata.GetPath(FileTypePipelineConfig, name)
+	if ctrl.metadata.ExistsPath(FileTypePipelineConfig, path) {
+		Failed(c, fmt.Errorf("The pipeline name(%s) is exists", name))
+		return
+	}
+
+	err := os.MkdirAll(filepath.Dir(path), 0750)
+	if err != nil {
+		Failed(c, err)
+		return
+	}
+
+	data, err := conf.Marshal()
+	if err != nil {
+		Failed(c, err)
+		return
+	}
+
+	err = ioutil.WriteFile(path, data, 0640)
+	if err != nil {
+		Failed(c, err)
+		return
+	}
+
+	_, err = ctrl.pipelineManager.AddPipeline(conf)
+	if err != nil {
+		Failed(c, err)
+		return
+	}
+
+	err = ctrl.metadata.AddPath(FileTypePipelineConfig, path)
 	if err != nil {
 		Failed(c, err)
 		return

@@ -17,8 +17,8 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/shima-park/nezha/common/log"
 	"github.com/shima-park/nezha/component"
-	"github.com/shima-park/nezha/inject"
-	"github.com/shima-park/nezha/monitor"
+	"github.com/shima-park/nezha/common/inject"
+	"github.com/shima-park/nezha/common/monitor"
 	"github.com/shima-park/nezha/processor"
 )
 

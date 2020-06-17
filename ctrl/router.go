@@ -1,5 +1,7 @@
 package ctrl
 
+import "github.com/gin-gonic/gin"
+
 func (ctrl *Ctrl) setRouter() {
 	r := ctrl.engine
 	r.GET("/pipeline/list", ctrl.listPipelines)
@@ -20,4 +22,12 @@ func (ctrl *Ctrl) setRouter() {
 
 	r.GET("/plugin/list", ctrl.listPlugins)
 	r.POST("/plugin/open", ctrl.openPlugin)
+
+	r.GET("/metadata", func(c *gin.Context) {
+		Success(c, map[string]interface{}{
+			"plugin_paths":   ctrl.metadata.ListPaths(FileTypePlugin),
+			"pipeline_paths": ctrl.metadata.ListPaths(FileTypePipelineConfig),
+			"http_addr":      ctrl.options.HTTPAddr,
+		})
+	})
 }

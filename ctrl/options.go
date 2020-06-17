@@ -1,33 +1,26 @@
 package ctrl
 
-type Options struct {
-	PluginPaths   []string
-	PipelinePaths []string
-	HTTPAddr      string
-}
-
-func (options *Options) Apply(opts ...Option) {
-	for _, opt := range opts {
-		opt(options)
+var (
+	defaultOptions = Options{
+		HTTPAddr: ":8080",
 	}
+)
+
+type Options struct {
+	HTTPAddr     string
+	MetadataPath string
 }
 
 type Option func(*Options)
 
-func PipelinePath(paths ...string) Option {
-	return func(o *Options) {
-		o.PipelinePaths = append(o.PipelinePaths, paths...)
-	}
-}
-
-func PluginPath(paths ...string) Option {
-	return func(o *Options) {
-		o.PluginPaths = append(o.PluginPaths, paths...)
-	}
-}
-
 func HTTPAddr(addr string) Option {
 	return func(o *Options) {
 		o.HTTPAddr = addr
+	}
+}
+
+func MetadataPath(path string) Option {
+	return func(o *Options) {
+		o.MetadataPath = path
 	}
 }

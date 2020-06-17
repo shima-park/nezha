@@ -5,7 +5,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/shima-park/nezha/inject"
+	"github.com/shima-park/nezha/common/inject"
 )
 
 type Option func(*pipeliner)

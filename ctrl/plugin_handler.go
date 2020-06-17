@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/nezha/plugin"
+	"github.com/shima-park/nezha/common/plugin"
 )
 
 func (ctrl *Ctrl) listPlugins(c *gin.Context) {

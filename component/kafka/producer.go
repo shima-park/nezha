@@ -8,7 +8,7 @@ import (
 	"github.com/shima-park/nezha/component"
 
 	"github.com/Shopify/sarama"
-	"github.com/shima-park/nezha/inject"
+	"github.com/shima-park/nezha/common/inject"
 )
 
 var (

@@ -2,8 +2,6 @@ package plugin
 
 import (
 	"errors"
-	"os"
-	"path/filepath"
 	goplugin "plugin"
 	"sync"
 	"time"
@@ -34,33 +32,7 @@ func List() []Plugin {
 }
 
 func LoadPlugins(path string) error {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-
-	var paths []string
-	if fi.IsDir() {
-		var err error
-		paths, err = filepath.Glob(filepath.Join(path, "*.so"))
-		if err != nil {
-			return err
-		}
-
-		if len(paths) == 0 {
-			return errors.New("not match any *.so for plugin")
-		}
-	} else {
-		paths = []string{path}
-	}
-
-	for _, path := range paths {
-		err := loadPlugins(path)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return loadPlugins(path)
 }
 
 func loadPlugins(path string) error {

@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/shima-park/nezha/common/log"
-	"github.com/shima-park/nezha/inject"
+	"github.com/shima-park/nezha/common/inject"
 	"github.com/shima-park/nezha/processor"
 )
 

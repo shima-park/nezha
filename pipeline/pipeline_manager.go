@@ -3,8 +3,6 @@ package pipeline
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -163,44 +161,22 @@ func (p *pipelinerManager) doByName(isReadLock bool, names []string, callback fu
 }
 
 func LoadPipelineFromFile(path string, pm PipelinerManager) error {
-	log.Info("Read config from: %s", path)
+	log.Info("loading pipeline from: %s", path)
 
-	fi, err := os.Stat(path)
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
 
-	var paths []string
-	if fi.IsDir() {
-		var err error
-		paths, err = filepath.Glob(filepath.Join(path, "*.yaml"))
-		if err != nil {
-			return err
-		}
-
-		if len(paths) == 0 {
-			return errors.New("not match pipeline config")
-		}
-	} else {
-		paths = []string{path}
+	var conf Config
+	err = config.Unmarshal(content, &conf)
+	if err != nil {
+		return err
 	}
 
-	for _, path := range paths {
-		content, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		var conf Config
-		err = config.Unmarshal(content, &conf)
-		if err != nil {
-			return err
-		}
-
-		_, err = pm.AddPipeline(conf)
-		if err != nil {
-			return err
-		}
+	_, err = pm.AddPipeline(conf)
+	if err != nil {
+		return err
 	}
 
 	return nil

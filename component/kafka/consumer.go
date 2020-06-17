@@ -104,9 +104,9 @@ func (c *Consumer) Start() error {
 		for {
 			select {
 			case ntf := <-c.consumer.Notifications():
-				log.Info("Rebalanced: %+v\n", ntf)
+				log.Info("Rebalanced: %+v", ntf)
 			case err := <-c.consumer.Errors():
-				log.Error("Error: %s\n", err.Error())
+				log.Error("Error: %s", err.Error())
 			case <-c.done:
 				return
 			}

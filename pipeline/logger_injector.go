@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"github.com/shima-park/nezha/common/log"
-	"github.com/shima-park/nezha/inject"
+	"github.com/shima-park/nezha/common/inject"
 )
 
 type loggerInjector struct {
