@@ -2,11 +2,10 @@ package plugin
 
 import (
 	"errors"
+	"fmt"
 	goplugin "plugin"
 	"sync"
 	"time"
-
-	"github.com/shima-park/nezha/common/log"
 )
 
 var (
@@ -39,7 +38,7 @@ func loadPlugins(path string) error {
 	rwlock.Lock()
 	defer rwlock.Unlock()
 
-	log.Info("loading plugin bundle: %v", path)
+	fmt.Printf("loading plugin bundle: %v\n", path)
 
 	p, err := goplugin.Open(path)
 	if err != nil {
