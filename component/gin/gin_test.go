@@ -3,7 +3,7 @@ package gin
 import (
 	"testing"
 
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestGin(t *testing.T) {

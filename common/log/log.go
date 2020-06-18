@@ -1,29 +1,24 @@
 package log
 
 import (
-	"os"
-
-	"github.com/rs/zerolog"
+	"fmt"
+	"log"
+	"time"
 )
 
-var defaultLogger = zerolog.New(os.Stdout).With().Timestamp().Logger()
-
-func SetLogger(logger zerolog.Logger) {
-	defaultLogger = logger
-}
-
-func SetLevel(level zerolog.Level) {
-	defaultLogger = defaultLogger.Level(level)
-}
-
 func Info(format string, args ...interface{}) {
-	defaultLogger.WithLevel(zerolog.InfoLevel).Msgf(format, args...)
+	printf("INFO", format, args...)
 }
 
 func Warn(format string, args ...interface{}) {
-	defaultLogger.WithLevel(zerolog.WarnLevel).Msgf(format, args...)
+	printf("WARN", format, args...)
 }
 
 func Error(format string, args ...interface{}) {
-	defaultLogger.WithLevel(zerolog.ErrorLevel).Msgf(format, args...)
+	printf("EROR", format, args...)
+}
+
+func printf(level, format string, args ...interface{}) {
+	t := time.Now().Format("2006-01-02 15:04:05")
+	log.Printf(fmt.Sprintf("[%s] %s %s", level, t, format), args...)
 }
