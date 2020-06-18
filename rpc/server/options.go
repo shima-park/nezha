@@ -1,4 +1,4 @@
-package ctrl
+package server
 
 var (
 	defaultOptions = Options{

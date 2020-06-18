@@ -1,4 +1,4 @@
-package ctrl
+package server
 
 import (
 	"errors"
@@ -27,6 +27,7 @@ const (
 
 type Metadata interface {
 	AddPath(ft FileType, path string) error
+	RemovePath(ft FileType, path string) error
 	GetPath(ft FileType, filename string) string
 	ExistsPath(ft FileType, path string) bool
 	ListPaths(ft FileType) []string
@@ -55,7 +56,7 @@ func NewMetadata(metapath string) (Metadata, error) {
 		paths:    map[FileType][]string{},
 	}
 
-	err := os.MkdirAll(filepath.Dir(metapath), 0750)
+	err := os.MkdirAll(metapath, 0750)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create data path %s: %v", metapath, err)
 	}
@@ -123,6 +124,25 @@ func (m *metadata) GetPath(ft FileType, filename string) string {
 	default:
 		panic(fmt.Sprintf("Unknown file type: %s", ft))
 	}
+}
+
+func (m *metadata) RemovePath(ft FileType, path string) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	for i, s := range m.paths[ft] {
+		if s == path {
+			m.paths[ft] = append(m.paths[ft][:i], m.paths[ft][i+1:]...)
+			break
+		}
+	}
+
+	err := os.Remove(path)
+	if err != nil {
+		return err
+	}
+
+	return m.save()
 }
 
 func (m *metadata) ExistsPath(ft FileType, path string) bool {

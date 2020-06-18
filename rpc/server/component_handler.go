@@ -1,23 +1,17 @@
-package ctrl
+package server
 
 import (
-	"net/http"
 	"sort"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shima-park/nezha/component"
+	"github.com/shima-park/nezha/rpc/proto"
 )
 
-type ComponentView struct {
-	Name         string `json:"name"`
-	SampleConfig string `json:"sample_config"`
-	Description  string `json:"description"`
-}
-
-func (ctrl *Ctrl) listComponents(c *gin.Context) {
-	var res []ComponentView
+func (s *Server) listComponents(c *gin.Context) {
+	var res []proto.ComponentView
 	for _, c := range component.ListFactory() {
-		res = append(res, ComponentView{
+		res = append(res, proto.ComponentView{
 			Name:         c.Name,
 			SampleConfig: c.Factory.SampleConfig(),
 			Description:  c.Factory.Description(),
@@ -31,12 +25,12 @@ func (ctrl *Ctrl) listComponents(c *gin.Context) {
 	Success(c, res)
 }
 
-func (ctrl *Ctrl) componentConfig(c *gin.Context) {
+func (s *Server) componentConfig(c *gin.Context) {
 	factory, err := component.GetFactory(c.Query("name"))
 	if err != nil {
 		Failed(c, err)
 		return
 	}
 
-	c.String(http.StatusOK, factory.SampleConfig())
+	Success(c, factory.SampleConfig())
 }

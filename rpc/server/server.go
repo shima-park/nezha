@@ -1,4 +1,4 @@
-package ctrl
+package server
 
 import (
 	"github.com/gin-gonic/gin"
@@ -7,15 +7,15 @@ import (
 	"github.com/shima-park/nezha/pipeline"
 )
 
-type Ctrl struct {
+type Server struct {
 	options         Options
 	metadata        Metadata
 	engine          *gin.Engine
 	pipelineManager pipeline.PipelinerManager
 }
 
-func New(opts ...Option) (*Ctrl, error) {
-	c := &Ctrl{
+func New(opts ...Option) (*Server, error) {
+	c := &Server{
 		options:         defaultOptions,
 		engine:          gin.Default(),
 		pipelineManager: pipeline.NewPipelinerManager(),
@@ -28,7 +28,7 @@ func New(opts ...Option) (*Ctrl, error) {
 	return c, c.init()
 }
 
-func (c *Ctrl) init() error {
+func (c *Server) init() error {
 	c.setRouter()
 
 	var err error
@@ -53,7 +53,7 @@ func (c *Ctrl) init() error {
 	return nil
 }
 
-func (c *Ctrl) Serve() error {
+func (c *Server) Serve() error {
 	for _, p := range c.pipelineManager.List() {
 		if p.GetConfig().Bootstrap {
 			if err := p.Start(); err != nil {
@@ -68,7 +68,7 @@ func (c *Ctrl) Serve() error {
 	return nil
 }
 
-func (c *Ctrl) Stop() {
+func (c *Server) Stop() {
 	for _, p := range c.pipelineManager.List() {
 		p.Stop()
 	}

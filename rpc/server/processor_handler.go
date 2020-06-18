@@ -1,4 +1,4 @@
-package ctrl
+package server
 
 import (
 	"net/http"
@@ -6,21 +6,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shima-park/nezha/processor"
+	"github.com/shima-park/nezha/rpc/proto"
 )
 
-type ProcessorView struct {
-	Name         string `json:"name"`
-	SampleConfig string `json:"sample_config"`
-	Description  string `json:"description"`
-}
-
-func (ctrl *Ctrl) listProcessors(c *gin.Context) {
-	var res []ProcessorView
+func (s *Server) listProcessors(c *gin.Context) {
+	var res []proto.ProcessorView
 	for _, c := range processor.ListFactory() {
-		res = append(res, ProcessorView{
+		res = append(res, proto.ProcessorView{
 			Name:         c.Name,
-			SampleConfig: c.Factory.SampleConfig(),
 			Description:  c.Factory.Description(),
+			SampleConfig: c.Factory.SampleConfig(),
 		})
 	}
 
@@ -31,7 +26,7 @@ func (ctrl *Ctrl) listProcessors(c *gin.Context) {
 	Success(c, res)
 }
 
-func (ctrl *Ctrl) processorConfig(c *gin.Context) {
+func (s *Server) processorConfig(c *gin.Context) {
 	factory, err := processor.GetFactory(c.Query("name"))
 	if err != nil {
 		Failed(c, err)
