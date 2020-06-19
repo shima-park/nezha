@@ -6,16 +6,17 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/shima-park/nezha/common/config"
-	"github.com/shima-park/nezha/pipeline"
+	"github.com/shima-park/lotus/pipeline"
 	"github.com/shima-park/nezha/rpc/proto"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 var cmdPipeline = &cobra.Command{
 	Use:     "pipeline",
 	Aliases: []string{"pipe"},
 	Run: func(cmd *cobra.Command, args []string) {
+		_ = cmd.Help()
 	},
 }
 
@@ -29,17 +30,19 @@ var cmdPipeList = &cobra.Command{
 			os.Exit(1)
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{
-			"name", "state", "schedule", "bootstrap", "start_time", "exit_time",
-			"run_times", "next_run_time", "last_start_time", "last_end_time",
-		})
-		table.SetRowLine(true)
+		var rows [][]string
 		for _, e := range list {
-			table.Append([]string{e.Name, e.State, e.Schedule, fmt.Sprint(e.Bootstrap),
+			rows = append(rows, []string{e.Name, e.State, e.Schedule, fmt.Sprint(e.Bootstrap),
 				e.StartTime, e.ExitTime, e.RunTimes, e.NextRunTime, e.LastStartTime, e.LastEndTime})
 		}
-		table.Render()
+
+		renderTable(
+			[]string{
+				"name", "state", "schedule", "bootstrap", "start_time", "exit_time",
+				"run_times", "next_run_time", "last_start_time", "last_end_time",
+			},
+			rows,
+		)
 	},
 }
 
@@ -226,7 +229,7 @@ func init() {
 			}
 
 			var conf pipeline.Config
-			err := config.Unmarshal(data, &conf)
+			err := yaml.Unmarshal(data, &conf)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

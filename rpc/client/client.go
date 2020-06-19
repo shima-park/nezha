@@ -1,7 +1,7 @@
 package client
 
 import (
-	pipe "github.com/shima-park/nezha/pipeline"
+	pipe "github.com/shima-park/lotus/pipeline"
 	"github.com/shima-park/nezha/rpc/proto"
 )
 

@@ -11,11 +11,11 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/nezha/common/config"
-	"github.com/shima-park/nezha/component"
-	"github.com/shima-park/nezha/pipeline"
-	"github.com/shima-park/nezha/processor"
+	"github.com/shima-park/lotus/component"
+	"github.com/shima-park/lotus/pipeline"
+	"github.com/shima-park/lotus/processor"
 	"github.com/shima-park/nezha/rpc/proto"
+	"gopkg.in/yaml.v2"
 )
 
 func Success(c *gin.Context, data interface{}) {
@@ -80,7 +80,7 @@ func (s *Server) addPipeline(c *gin.Context) {
 		return
 	}
 
-	data, err := conf.Marshal()
+	data, err := yaml.Marshal(conf)
 	if err != nil {
 		Failed(c, err)
 		return
@@ -225,7 +225,7 @@ func (s *Server) generateConfig(c *gin.Context) {
 		Stream:     *streamConfig,
 	}
 
-	b, err := config.Marshal(conf)
+	b, err := yaml.Marshal(conf)
 	if err != nil {
 		Failed(c, err)
 		return
@@ -245,7 +245,7 @@ func (s *Server) pipelineVars(c *gin.Context) {
 
 func (s *Server) pipelineConfig(c *gin.Context) {
 	s.handlePipelineByName(c, func(c *gin.Context, pipe pipeline.Pipeliner) {
-		config, err := pipe.GetConfig().Marshal()
+		config, err := yaml.Marshal(pipe.GetConfig())
 		if err != nil {
 			Failed(c, err)
 			return

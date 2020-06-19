@@ -5,16 +5,16 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/shima-park/nezha/common/config"
 	"github.com/shima-park/nezha/rpc/server"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
 	var cmdServer = &cobra.Command{
 		Use: "server",
 		Run: func(cmd *cobra.Command, args []string) {
-
+			_ = cmd.Help()
 		},
 	}
 
@@ -30,7 +30,7 @@ func init() {
 				os.Exit(1)
 			}
 
-			b, _ := config.Marshal(meta)
+			b, _ := yaml.Marshal(meta)
 			fmt.Println(string(b))
 		},
 	}

@@ -7,11 +7,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/shima-park/nezha/common/config"
-	"github.com/shima-park/nezha/component"
+	"github.com/shima-park/lotus/component"
+	"gopkg.in/yaml.v2"
 
 	"github.com/pkg/errors"
-	"github.com/shima-park/nezha/common/inject"
+	"github.com/shima-park/lotus/common/inject"
 )
 
 var (
@@ -44,6 +44,10 @@ type WriterConfig struct {
 	Path string
 }
 
+func (c WriterConfig) Marshal() ([]byte, error) {
+	return yaml.Marshal(c)
+}
+
 type Writer struct {
 	wc       io.WriteCloser
 	instance component.Instance
@@ -61,7 +65,7 @@ func NopCloser(w io.Writer) io.WriteCloser {
 
 func NewWriter(rawConfig string) (*Writer, error) {
 	conf := defaultWriterConfig
-	err := config.Unmarshal([]byte(rawConfig), &conf)
+	err := yaml.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
 	}

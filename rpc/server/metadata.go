@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/shima-park/nezha/common/log"
+	"github.com/shima-park/lotus/common/log"
 	"gopkg.in/yaml.v2"
 )
 

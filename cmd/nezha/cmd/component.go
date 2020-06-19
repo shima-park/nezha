@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +11,7 @@ var cmdComponent = &cobra.Command{
 	Use:     "component",
 	Aliases: []string{"comp"},
 	Run: func(cmd *cobra.Command, args []string) {
-
+		_ = cmd.Help()
 	},
 }
 
@@ -26,17 +25,17 @@ var cmdCompList = &cobra.Command{
 			os.Exit(1)
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{
-			"name", "raw_config", "sample_config", "desc", "inject_name", "reflect_type",
-		})
-		table.SetRowLine(true)
+		var rows [][]string
 		for _, e := range list {
-			table.Append([]string{
+			rows = append(rows, []string{
 				e.Name, e.RawConfig, e.SampleConfig, e.Description, e.InjectName, e.ReflectType,
 			})
 		}
-		table.Render()
+
+		renderTable(
+			[]string{"name", "raw_config", "sample_config", "desc", "inject_name", "reflect_type"},
+			rows,
+		)
 	},
 }
 

@@ -4,7 +4,7 @@ import (
 	"sort"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/nezha/component"
+	"github.com/shima-park/lotus/component"
 	"github.com/shima-park/nezha/rpc/proto"
 )
 

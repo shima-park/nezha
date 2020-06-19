@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/nezha/common/plugin"
+	"github.com/shima-park/lotus/common/plugin"
 	"github.com/shima-park/nezha/rpc/proto"
 )
 

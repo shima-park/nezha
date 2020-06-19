@@ -3,12 +3,12 @@ package kafka
 import (
 	"reflect"
 
-	"github.com/shima-park/nezha/common/config"
-	"github.com/shima-park/nezha/common/log"
-	"github.com/shima-park/nezha/component"
+	"github.com/shima-park/lotus/common/log"
+	"github.com/shima-park/lotus/component"
+	"gopkg.in/yaml.v2"
 
 	"github.com/Shopify/sarama"
-	"github.com/shima-park/nezha/common/inject"
+	"github.com/shima-park/lotus/common/inject"
 )
 
 var (
@@ -41,6 +41,10 @@ type ProducerConfig struct {
 	Addrs []string `yaml:"addrs"`
 }
 
+func (c ProducerConfig) Marshal() ([]byte, error) {
+	return yaml.Marshal(c)
+}
+
 type Producer struct {
 	config   ProducerConfig
 	producer sarama.SyncProducer
@@ -49,7 +53,7 @@ type Producer struct {
 
 func NewProducer(rawConfig string) (*Producer, error) {
 	conf := defaultProducerConfig
-	err := config.Unmarshal([]byte(rawConfig), &conf)
+	err := yaml.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
 	}

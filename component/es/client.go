@@ -3,9 +3,9 @@ package es
 import (
 	"reflect"
 
-	"github.com/shima-park/nezha/common/config"
-	"github.com/shima-park/nezha/common/log"
-	"github.com/shima-park/nezha/component"
+	"github.com/shima-park/lotus/common/log"
+	"github.com/shima-park/lotus/component"
+	"gopkg.in/yaml.v2"
 
 	"github.com/olivere/elastic/v7"
 )
@@ -40,6 +40,10 @@ type Config struct {
 	Addr string `yaml:"addr"`
 }
 
+func (c Config) Marshal() ([]byte, error) {
+	return yaml.Marshal(c)
+}
+
 type Client struct {
 	c        *elastic.Client
 	instance component.Instance
@@ -47,7 +51,7 @@ type Client struct {
 
 func NewClient(rawConfig string) (*Client, error) {
 	conf := defaultConfig
-	err := config.Unmarshal([]byte(rawConfig), &conf)
+	err := yaml.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
 	}

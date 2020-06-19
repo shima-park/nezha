@@ -1,10 +1,13 @@
 package server
 
 import (
+	"io/ioutil"
+
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/nezha/common/plugin"
-	_ "github.com/shima-park/nezha/component/include"
-	"github.com/shima-park/nezha/pipeline"
+	"github.com/shima-park/lotus/common/log"
+	"github.com/shima-park/lotus/common/plugin"
+	"github.com/shima-park/lotus/pipeline"
+	"gopkg.in/yaml.v2"
 )
 
 type Server struct {
@@ -45,11 +48,33 @@ func (c *Server) init() error {
 	}
 
 	for _, path := range c.metadata.ListPaths(FileTypePipelineConfig) {
-		err := pipeline.LoadPipelineFromFile(path, c.pipelineManager)
+		err := loadPipelineFromFile(path, c.pipelineManager)
 		if err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func loadPipelineFromFile(path string, pm pipeline.PipelinerManager) error {
+	log.Info("loading pipeline from: %s", path)
+
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	var conf pipeline.Config
+	err = yaml.Unmarshal(content, &conf)
+	if err != nil {
+		return err
+	}
+
+	_, err = pm.AddPipeline(conf)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

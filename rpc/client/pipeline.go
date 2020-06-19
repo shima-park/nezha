@@ -3,7 +3,7 @@ package client
 import (
 	"net/url"
 
-	p "github.com/shima-park/nezha/pipeline"
+	p "github.com/shima-park/lotus/pipeline"
 	"github.com/shima-park/nezha/rpc/proto"
 )
 

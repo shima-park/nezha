@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/nezha/common/config"
-	"github.com/shima-park/nezha/common/log"
-	"github.com/shima-park/nezha/component"
+	"github.com/shima-park/lotus/common/log"
+	"github.com/shima-park/lotus/component"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -46,6 +46,10 @@ type Config struct {
 	GracefulStopTimeout time.Duration `yaml:"graceful_stop_timeout"`
 }
 
+func (c Config) Marshal() ([]byte, error) {
+	return yaml.Marshal(c)
+}
+
 type Gin struct {
 	conf     Config
 	srv      *http.Server
@@ -54,7 +58,7 @@ type Gin struct {
 
 func NewGin(rawConfig string) (*Gin, error) {
 	conf := defaultConfig
-	err := config.Unmarshal([]byte(rawConfig), &conf)
+	err := yaml.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +11,7 @@ var cmdPlugin = &cobra.Command{
 	Use:     "plugin",
 	Aliases: []string{"plug"},
 	Run: func(cmd *cobra.Command, args []string) {
-
+		_ = cmd.Help()
 	},
 }
 
@@ -26,17 +25,16 @@ var cmdPluginList = &cobra.Command{
 			os.Exit(1)
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{
-			"path", "module", "open_time",
-		})
-		table.SetRowLine(true)
+		var rows [][]string
 		for _, e := range list {
-			table.Append([]string{
+			rows = append(rows, []string{
 				e.Path, e.Module, e.OpenTime,
 			})
 		}
-		table.Render()
+		renderTable(
+			[]string{"path", "module", "open_time"},
+			rows,
+		)
 	},
 }
 

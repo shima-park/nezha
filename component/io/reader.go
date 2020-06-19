@@ -6,11 +6,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/shima-park/nezha/common/config"
-	"github.com/shima-park/nezha/component"
+	"github.com/shima-park/lotus/component"
+	"gopkg.in/yaml.v2"
 
 	"github.com/pkg/errors"
-	"github.com/shima-park/nezha/common/inject"
+	"github.com/shima-park/lotus/common/inject"
 )
 
 var (
@@ -43,6 +43,10 @@ type ReaderConfig struct {
 	Path string
 }
 
+func (c ReaderConfig) Marshal() ([]byte, error) {
+	return yaml.Marshal(c)
+}
+
 type Reader struct {
 	rc       io.ReadCloser
 	instance component.Instance
@@ -50,7 +54,7 @@ type Reader struct {
 
 func NewReader(rawConfig string) (*Reader, error) {
 	conf := defaultReaderConfig
-	err := config.Unmarshal([]byte(rawConfig), &conf)
+	err := yaml.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
 	}

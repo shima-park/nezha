@@ -5,8 +5,8 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/shima-park/lotus/pipeline"
 	_ "github.com/shima-park/nezha/component/include"
-	"github.com/shima-park/nezha/pipeline"
 )
 
 func main() {

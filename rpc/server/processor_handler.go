@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/nezha/processor"
+	"github.com/shima-park/lotus/processor"
 	"github.com/shima-park/nezha/rpc/proto"
 )
 

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/shima-park/nezha/common/config"
-	"github.com/shima-park/nezha/common/log"
-	"github.com/shima-park/nezha/component"
+	"github.com/shima-park/lotus/common/log"
+	"github.com/shima-park/lotus/component"
+	"gopkg.in/yaml.v2"
 
 	cluster "github.com/bsm/sarama-cluster"
 )
@@ -50,6 +50,10 @@ type ConsumerConfig struct {
 	OffsetsAutoCommit bool     `yaml:"offsets_auto_commit"`
 }
 
+func (c ConsumerConfig) Marshal() ([]byte, error) {
+	return yaml.Marshal(c)
+}
+
 type Consumer struct {
 	config   ConsumerConfig
 	consumer *cluster.Consumer
@@ -59,7 +63,7 @@ type Consumer struct {
 
 func NewConsumer(rawConfig string) (*Consumer, error) {
 	conf := defaultConsumerConfig
-	err := config.Unmarshal([]byte(rawConfig), &conf)
+	err := yaml.Unmarshal([]byte(rawConfig), &conf)
 	if err != nil {
 		return nil, err
 	}
