@@ -2,7 +2,7 @@ package client
 
 import (
 	pipe "github.com/shima-park/lotus/pipeline"
-	"github.com/shima-park/nezha/rpc/proto"
+	"github.com/shima-park/nezha/pkg/rpc/proto"
 )
 
 type Pipeline interface {

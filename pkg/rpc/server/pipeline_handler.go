@@ -14,7 +14,7 @@ import (
 	"github.com/shima-park/lotus/component"
 	"github.com/shima-park/lotus/pipeline"
 	"github.com/shima-park/lotus/processor"
-	"github.com/shima-park/nezha/rpc/proto"
+	"github.com/shima-park/nezha/pkg/rpc/proto"
 	"gopkg.in/yaml.v2"
 )
 

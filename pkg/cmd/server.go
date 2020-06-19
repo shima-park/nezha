@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/shima-park/nezha/rpc/server"
+	"github.com/shima-park/nezha/pkg/rpc/server"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )

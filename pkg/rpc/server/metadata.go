@@ -63,7 +63,7 @@ func NewMetadata(metapath string) (Metadata, error) {
 
 	_, err = os.Lstat(m.metafile)
 	if err != nil && os.IsNotExist(err) {
-		log.Info("No metadata file found under: %s. Creating a new registry file.", m.metafile)
+		log.Info("No metadata file found under: %s. Creating a new metadata file.", m.metafile)
 		if err = m.save(); err != nil {
 			return nil, err
 		}

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/shima-park/nezha/rpc/proto"
+	"github.com/shima-park/nezha/pkg/rpc/proto"
 )
 
 type plugin struct {

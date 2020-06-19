@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/shima-park/nezha/rpc/client"
+	"github.com/shima-park/nezha/pkg/rpc/client"
 	"github.com/spf13/cobra"
 )
 

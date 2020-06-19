@@ -7,7 +7,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/shima-park/lotus/pipeline"
-	"github.com/shima-park/nezha/rpc/proto"
+	"github.com/shima-park/nezha/pkg/rpc/proto"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )

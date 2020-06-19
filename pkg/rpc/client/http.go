@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/shima-park/nezha/rpc/proto"
+	"github.com/shima-park/nezha/pkg/rpc/proto"
 	"gopkg.in/yaml.v2"
 )
 

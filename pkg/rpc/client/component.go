@@ -1,6 +1,6 @@
 package client
 
-import "github.com/shima-park/nezha/rpc/proto"
+import "github.com/shima-park/nezha/pkg/rpc/proto"
 
 type component struct {
 	apiBuilder
