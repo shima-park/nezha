@@ -172,6 +172,8 @@ github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQD
 github.com/sclevine/agouti v3.0.0+incompatible/go.mod h1:b4WX9W9L1sfQKXeJf1mUTLZKJ48R1S7H23Ji7oFO5Bw=
 github.com/shima-park/lotus v1.0.0 h1:C4KR4E7Z1lQeeaOg+JTeclDWHLcHqsgHJxSEi0VKtGQ=
 github.com/shima-park/lotus v1.0.0/go.mod h1:RQrsEZANNyG7Fl1EpVAsPP1gbcddTy19onI43ay+b44=
+github.com/shima-park/lotus v1.0.1 h1:LgWSSTaULOPuru6o4vXlcYR52bfOrZfkVQk+3GC3ros=
+github.com/shima-park/lotus v1.0.1/go.mod h1:Yh+ER4QUD/yMyUVfIMJXuSn9gyf6hM80HYhonvcSQf0=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/smartystreets/assertions v1.1.0/go.mod h1:tcbTF8ujkAEcZ8TElKY+i30BzYlVhC/LOxJk7iOWnoo=

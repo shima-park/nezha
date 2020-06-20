@@ -32,8 +32,6 @@ func New(opts ...Option) (*Server, error) {
 }
 
 func (c *Server) init() error {
-	c.setRouter()
-
 	var err error
 	c.metadata, err = NewMetadata(c.options.MetadataPath)
 	if err != nil {
@@ -88,6 +86,8 @@ func (c *Server) Serve() error {
 	}
 
 	if c.options.HTTPAddr != "" {
+		c.setRouter()
+
 		return c.engine.Run(c.options.HTTPAddr)
 	}
 	return nil

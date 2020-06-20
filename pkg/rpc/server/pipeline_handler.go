@@ -161,7 +161,7 @@ func (s *Server) listPipelineProcessors(c *gin.Context) {
 			})
 		}
 
-		c.JSON(http.StatusOK, res)
+		Success(c, res)
 	})
 }
 
@@ -230,7 +230,7 @@ func (s *Server) generateConfig(c *gin.Context) {
 		Failed(c, err)
 		return
 	}
-	c.String(200, string(b))
+	Success(c, string(b))
 }
 
 func (s *Server) pipelineVars(c *gin.Context) {

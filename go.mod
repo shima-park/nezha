@@ -11,7 +11,7 @@ require (
 	github.com/olivere/elastic/v7 v7.0.17
 	github.com/onsi/ginkgo v1.13.0 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/shima-park/lotus v1.0.0
+	github.com/shima-park/lotus v1.0.1
 	github.com/spf13/cobra v1.0.0
 	gopkg.in/yaml.v2 v2.3.0
 	gotest.tools/v3 v3.0.2

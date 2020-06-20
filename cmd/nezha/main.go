@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "github.com/shima-park/nezha/component/include"
+	_ "github.com/shima-park/nezha/pkg/component/include"
 	"github.com/shima-park/nezha/pkg/cmd"
 )
 

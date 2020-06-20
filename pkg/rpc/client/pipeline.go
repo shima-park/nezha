@@ -2,6 +2,7 @@ package client
 
 import (
 	"net/url"
+	"strings"
 
 	p "github.com/shima-park/lotus/pipeline"
 	"github.com/shima-park/nezha/pkg/rpc/proto"
@@ -27,7 +28,7 @@ func (p *pipeline) Control(cmd proto.ControlCommand, names []string) error {
 	for _, name := range names {
 		vals.Add("name", name)
 	}
-	return GetJSON(p.api("/pipeline/ctrl"), nil)
+	return GetJSON(p.api("/pipeline/ctrl?"+vals.Encode()), nil)
 }
 
 func (p *pipeline) ListComponents(name string) ([]proto.ComponentView, error) {
@@ -61,13 +62,9 @@ func (p *pipeline) Config(name string) (string, error) {
 func (p *pipeline) GenerateConfig(name string, components, processors []string) (string, error) {
 	vals := url.Values{}
 	vals.Add("name", name)
-	for _, c := range components {
-		vals.Add("components", c)
-	}
-	for _, p := range processors {
-		vals.Add("processors", p)
-	}
+	vals.Add("components", strings.Join(components, ","))
+	vals.Add("processors", strings.Join(processors, ","))
 	var s string
-	err := GetJSON(p.api("/pipeline/generate-config"), &s)
+	err := GetJSON(p.api("/pipeline/generate-config?"+vals.Encode()), &s)
 	return s, err
 }
