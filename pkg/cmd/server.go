@@ -1,37 +1,20 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 
 	"github.com/shima-park/nezha/pkg/rpc/server"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 func init() {
 	var cmdServer = &cobra.Command{
-		Use: "server",
+		Use:     "server",
+		Aliases: []string{"serv", "srv"},
+		Short:   "Commands to control server",
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
-		},
-	}
-
-	var cmdMetadata = &cobra.Command{
-		Use:     "metadata",
-		Aliases: []string{"meta"},
-		Short:   "Display metadata of server",
-		Run: func(cmd *cobra.Command, args []string) {
-			c := newClient()
-			meta, err := c.Server.Metadata()
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-
-			b, _ := yaml.Marshal(meta)
-			fmt.Println(string(b))
 		},
 	}
 
@@ -64,7 +47,6 @@ func init() {
 	cmdRunServer.Flags().StringVar(&httpAddr, "http", "", "listen on address")
 
 	cmdServer.AddCommand(cmdRunServer)
-	cmdServer.AddCommand(cmdMetadata)
 
 	rootCmd.AddCommand(cmdServer)
 }

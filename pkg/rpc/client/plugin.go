@@ -27,7 +27,7 @@ func (c *plugin) Open(path string) error {
 	return PostJSON(c.api("/plugin/open"), req, nil)
 }
 
-func (c *plugin) Upload(path string) error {
+func (c *plugin) Add(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err

@@ -1,37 +1,25 @@
 package server
 
 import (
-	"net/http"
-	"sort"
-
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/lotus/processor"
-	"github.com/shima-park/nezha/pkg/rpc/proto"
 )
 
 func (s *Server) listProcessors(c *gin.Context) {
-	var res []proto.ProcessorView
-	for _, c := range processor.ListFactory() {
-		res = append(res, proto.ProcessorView{
-			Name:         c.Name,
-			Description:  c.Factory.Description(),
-			SampleConfig: c.Factory.SampleConfig(),
-		})
-	}
-
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].Name < res[j].Name
-	})
-
-	Success(c, res)
-}
-
-func (s *Server) processorConfig(c *gin.Context) {
-	factory, err := processor.GetFactory(c.Query("name"))
+	res, err := s.Processor.List()
 	if err != nil {
 		Failed(c, err)
 		return
 	}
 
-	c.String(http.StatusOK, factory.SampleConfig())
+	Success(c, res)
+}
+
+func (s *Server) findProcessor(c *gin.Context) {
+	proc, err := s.Processor.Find(c.Query("name"))
+	if err != nil {
+		Failed(c, err)
+		return
+	}
+
+	Success(c, proc)
 }

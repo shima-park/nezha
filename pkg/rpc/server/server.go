@@ -7,14 +7,23 @@ import (
 	"github.com/shima-park/lotus/common/log"
 	"github.com/shima-park/lotus/common/plugin"
 	"github.com/shima-park/lotus/pipeline"
+	"github.com/shima-park/nezha/pkg/rpc/proto"
+	"github.com/shima-park/nezha/pkg/rpc/server/service"
 	"gopkg.in/yaml.v2"
 )
 
 type Server struct {
-	options         Options
-	metadata        Metadata
-	engine          *gin.Engine
+	options Options
+	engine  *gin.Engine
+
+	metadata        proto.Metadata
 	pipelineManager pipeline.PipelinerManager
+
+	proto.Pipeline
+	proto.Component
+	proto.Processor
+	proto.Plugin
+	proto.Server
 }
 
 func New(opts ...Option) (*Server, error) {
@@ -33,19 +42,24 @@ func New(opts ...Option) (*Server, error) {
 
 func (c *Server) init() error {
 	var err error
-	c.metadata, err = NewMetadata(c.options.MetadataPath)
+	c.metadata, err = service.NewMetadata(c.options.MetadataPath)
 	if err != nil {
 		return err
 	}
 
-	for _, path := range c.metadata.ListPaths(FileTypePlugin) {
+	c.Pipeline = service.NewPipelineService(c.metadata, c.pipelineManager)
+	c.Component = service.NewComponentService()
+	c.Processor = service.NewProcessorService()
+	c.Plugin = service.NewPluginService(c.metadata)
+
+	for _, path := range c.metadata.ListPaths(proto.FileTypePlugin) {
 		err := plugin.LoadPlugins(path)
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, path := range c.metadata.ListPaths(FileTypePipelineConfig) {
+	for _, path := range c.metadata.ListPaths(proto.FileTypePipelineConfig) {
 		err := loadPipelineFromFile(path, c.pipelineManager)
 		if err != nil {
 			return err

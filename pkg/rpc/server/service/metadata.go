@@ -1,4 +1,4 @@
-package server
+package service
 
 import (
 	"errors"
@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/shima-park/lotus/common/log"
+	"github.com/shima-park/nezha/pkg/rpc/proto"
 	"gopkg.in/yaml.v2"
 )
 
@@ -18,30 +19,15 @@ const (
 	METADATA_FILENAME = "meta.yaml"
 )
 
-type FileType string
-
-const (
-	FileTypePlugin         FileType = "plugins"
-	FileTypePipelineConfig FileType = "pipelines"
-)
-
-type Metadata interface {
-	AddPath(ft FileType, path string) error
-	RemovePath(ft FileType, path string) error
-	GetPath(ft FileType, filename string) string
-	ExistsPath(ft FileType, path string) bool
-	ListPaths(ft FileType) []string
-}
-
 type metadata struct {
 	metapath string
 	metafile string
 
 	lock  sync.RWMutex
-	paths map[FileType][]string
+	paths map[proto.FileType][]string
 }
 
-func NewMetadata(metapath string) (Metadata, error) {
+func NewMetadata(metapath string) (proto.Metadata, error) {
 	if metapath == "" {
 		pwd, err := os.Getwd()
 		if err != nil {
@@ -53,7 +39,7 @@ func NewMetadata(metapath string) (Metadata, error) {
 	m := &metadata{
 		metapath: metapath,
 		metafile: filepath.Join(metapath, METADATA_FILENAME),
-		paths:    map[FileType][]string{},
+		paths:    map[proto.FileType][]string{},
 	}
 
 	err := os.MkdirAll(metapath, 0750)
@@ -94,7 +80,7 @@ func (m *metadata) save() error {
 	return ioutil.WriteFile(m.metafile, data, 0644)
 }
 
-func (m *metadata) AddPath(ft FileType, path string) error {
+func (m *metadata) AddPath(ft proto.FileType, path string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -106,27 +92,27 @@ func (m *metadata) AddPath(ft FileType, path string) error {
 	}
 
 	switch ft {
-	case FileTypePlugin:
+	case proto.FileTypePlugin:
 		return m.addPath(path, "*.so", ft)
-	case FileTypePipelineConfig:
+	case proto.FileTypePipelineConfig:
 		return m.addPath(path, "*.yaml", ft)
 	default:
 		return fmt.Errorf("Unknown file type: %s", ft)
 	}
 }
 
-func (m *metadata) GetPath(ft FileType, filename string) string {
+func (m *metadata) GetPath(ft proto.FileType, filename string) string {
 	switch ft {
-	case FileTypePlugin:
-		return filepath.Join(m.metapath, string(FileTypePlugin), filename)
-	case FileTypePipelineConfig:
-		return filepath.Join(m.metapath, string(FileTypePipelineConfig), filename)
+	case proto.FileTypePlugin:
+		return filepath.Join(m.metapath, string(ft), filename)
+	case proto.FileTypePipelineConfig:
+		return filepath.Join(m.metapath, string(ft), filename)
 	default:
 		panic(fmt.Sprintf("Unknown file type: %s", ft))
 	}
 }
 
-func (m *metadata) RemovePath(ft FileType, path string) error {
+func (m *metadata) RemovePath(ft proto.FileType, path string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -145,7 +131,7 @@ func (m *metadata) RemovePath(ft FileType, path string) error {
 	return m.save()
 }
 
-func (m *metadata) ExistsPath(ft FileType, path string) bool {
+func (m *metadata) ExistsPath(ft proto.FileType, path string) bool {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -157,7 +143,7 @@ func (m *metadata) ExistsPath(ft FileType, path string) bool {
 	return false
 }
 
-func (m *metadata) ListPaths(ft FileType) []string {
+func (m *metadata) ListPaths(ft proto.FileType) []string {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -169,7 +155,7 @@ func (m *metadata) ListPaths(ft FileType) []string {
 	return nil
 }
 
-func (m *metadata) addPath(path string, pattern string, ft FileType) error {
+func (m *metadata) addPath(path string, pattern string, ft proto.FileType) error {
 	path = strings.TrimSpace(path)
 	if path == "" {
 		return nil
@@ -212,6 +198,13 @@ func (m *metadata) addPath(path string, pattern string, ft FileType) error {
 	}
 
 	return m.save()
+}
+
+func (m *metadata) Overwrite(ft proto.FileType, path string, data []byte) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	return ioutil.WriteFile(path, data, 0644)
 }
 
 func stringInSlice(t string, ss []string) bool {

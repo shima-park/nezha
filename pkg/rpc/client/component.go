@@ -12,8 +12,8 @@ func (c *component) List() ([]proto.ComponentView, error) {
 	return res, err
 }
 
-func (c *component) Config(name string) (string, error) {
-	var s string
-	err := GetJSON(c.api("/component/config?name="+name), &s)
-	return s, err
+func (c *component) Find(name string) (*proto.ComponentView, error) {
+	var res proto.ComponentView
+	err := GetJSON(c.api("/component?name="+name), &res)
+	return &res, err
 }

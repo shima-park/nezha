@@ -10,10 +10,6 @@ import (
 	"github.com/shima-park/lotus/processor"
 )
 
-func init() {
-	pipeline.AddVisualizer("ascii_table", ASCIITableVisualizer)
-}
-
 func ASCIITableVisualizer(w io.Writer, pipeline pipeline.Pipeliner) error {
 	printPipelineComponents(w, pipeline)
 	printPipelineProcessors(w, pipeline)

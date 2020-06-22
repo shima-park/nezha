@@ -6,18 +6,14 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shima-park/lotus/common/plugin"
 	"github.com/shima-park/nezha/pkg/rpc/proto"
 )
 
 func (s *Server) listPlugins(c *gin.Context) {
-	var res []proto.PluginView
-	for _, p := range plugin.List() {
-		res = append(res, proto.PluginView{
-			Path:     p.Path,
-			Module:   p.Module,
-			OpenTime: fmt.Sprint(p.OpenTime),
-		})
+	res, err := s.Plugin.List()
+	if err != nil {
+		Failed(c, err)
+		return
 	}
 
 	Success(c, res)
@@ -31,7 +27,7 @@ func (s *Server) openPlugin(c *gin.Context) {
 		return
 	}
 
-	err = plugin.LoadPlugins(req.Path)
+	err = s.Plugin.Open(req.Path)
 	if err != nil {
 		Failed(c, err)
 		return
@@ -48,8 +44,8 @@ func (s *Server) uploadPlugin(c *gin.Context) {
 	}
 
 	filename := filepath.Base(pluginFile.Filename)
-	path := s.metadata.GetPath(FileTypePlugin, filename)
-	if s.metadata.ExistsPath(FileTypePlugin, path) {
+	path := s.metadata.GetPath(proto.FileTypePlugin, filename)
+	if s.metadata.ExistsPath(proto.FileTypePlugin, path) {
 		Failed(c, fmt.Errorf("The plugin name(%s) is exists", path))
 		return
 	}
@@ -65,15 +61,8 @@ func (s *Server) uploadPlugin(c *gin.Context) {
 		return
 	}
 
-	err = s.metadata.AddPath(FileTypePlugin, path)
+	err = s.Plugin.Add(path)
 	if err != nil {
-		Failed(c, err)
-		return
-	}
-
-	err = plugin.LoadPlugins(path)
-	if err != nil {
-		_ = s.metadata.RemovePath(FileTypePlugin, path)
 		Failed(c, err)
 		return
 	}

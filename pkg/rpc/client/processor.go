@@ -12,8 +12,8 @@ func (c *processor) List() ([]proto.ProcessorView, error) {
 	return res, err
 }
 
-func (c *processor) Config(name string) (string, error) {
-	var s string
-	err := GetJSON(c.api("/processor/config?name="+name), &s)
-	return s, err
+func (c *processor) Find(name string) (*proto.ProcessorView, error) {
+	var res proto.ProcessorView
+	err := GetJSON(c.api("/processor?name="+name), &res)
+	return &res, err
 }

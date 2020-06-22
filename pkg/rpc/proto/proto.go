@@ -24,16 +24,19 @@ type Result struct {
 }
 
 type PipelineView struct {
-	Name          string `json:"name"`
-	State         string `json:"state"`
-	Schedule      string `json:"schedule"`
-	Bootstrap     bool   `json:"bootstrap"`
-	StartTime     string `json:"start_time"`
-	ExitTime      string `json:"exit_time"`
-	RunTimes      string `json:"run_times"`
-	NextRunTime   string `json:"next_run_time"`
-	LastStartTime string `json:"last_start_time"`
-	LastEndTime   string `json:"last_end_time"`
+	Name          string          `json:"name"`
+	State         string          `json:"state"`
+	Schedule      string          `json:"schedule"`
+	Bootstrap     bool            `json:"bootstrap"`
+	StartTime     string          `json:"start_time"`
+	ExitTime      string          `json:"exit_time"`
+	RunTimes      string          `json:"run_times"`
+	NextRunTime   string          `json:"next_run_time"`
+	LastStartTime string          `json:"last_start_time"`
+	LastEndTime   string          `json:"last_end_time"`
+	Components    []ComponentView `json:"components,emitempty"`
+	Processors    []ProcessorView `json:"processors,emitempty"`
+	RawConfig     []byte          `json:"raw_config,emitempty"`
 }
 
 type ComponentView struct {
